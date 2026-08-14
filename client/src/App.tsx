@@ -2,7 +2,12 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 import { useEffect, useState } from "react";
 
-const healthEndpoint = "http://localhost:3000/api/health";
+const healthTimeoutMs = 5000;
+const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000").replace(
+  /\/$/,
+  "",
+);
+const healthEndpoint = `${apiBaseUrl}/api/health`;
 
 type HealthResponse = {
   service: string;
@@ -15,10 +20,14 @@ export function App() {
 
   useEffect(() => {
     let isMounted = true;
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), healthTimeoutMs);
 
     const loadHealth = async () => {
       try {
-        const response = await fetch(healthEndpoint);
+        const response = await fetch(healthEndpoint, {
+          signal: controller.signal,
+        });
 
         if (!response.ok) {
           throw new Error(`Backend responded with HTTP ${response.status}.`);
@@ -33,12 +42,21 @@ export function App() {
         if (isMounted) {
           setHealth(payload);
         }
-      } catch {
+      } catch (error) {
         if (isMounted) {
+          const isTimeout =
+            typeof error === "object" &&
+            error !== null &&
+            "name" in error &&
+            error.name === "AbortError";
           setHealthError(
-            "Unable to reach the TokTickIT API. Start the backend on port 3000 and try again.",
+            isTimeout
+              ? "The TokTickIT API did not respond within 5 seconds."
+              : "Unable to reach the TokTickIT API. Start the backend on the configured API URL and try again.",
           );
         }
+      } finally {
+        window.clearTimeout(timeoutId);
       }
     };
 
@@ -46,6 +64,8 @@ export function App() {
 
     return () => {
       isMounted = false;
+      controller.abort();
+      window.clearTimeout(timeoutId);
     };
   }, []);
 
