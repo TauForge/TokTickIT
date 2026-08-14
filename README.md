@@ -4,7 +4,7 @@ TokTickIT is an IT service desk application being built through the CPE334 indiv
 
 ## Current branch scope
 
-This branch contains the Issue 1 foundation, Issue 2 API health check, and Issue 3 category seed:
+This branch contains the Issue 1 foundation, Issue 2 API health check, Issue 3 category seed, and Issue 4 category list:
 
 - React + TypeScript + Vite frontend with Bootstrap styling
 - Node.js + Express + TypeScript backend
@@ -15,8 +15,10 @@ This branch contains the Issue 1 foundation, Issue 2 API health check, and Issue
 - `GET /api/health` with a Supertest verification
 - React health status, loading state, and backend-unavailable error state
 - Prisma `Category` model, migration, and idempotent seed for four IT request categories
+- `GET /api/categories` backed by Prisma with predictable ID ordering
+- React category list loaded from the API with loading and error states
 
-Category APIs and the category-list UI are intentionally not implemented on this branch. They belong to the later feature branch.
+No later application features are implemented on this branch.
 
 ## Prerequisites
 
@@ -50,7 +52,7 @@ npm run dev:server
 npm run dev:client
 ```
 
-Open the Vite URL shown in the client terminal. The page should show the TokTickIT heading, a Bootstrap-styled foundation card, and the live backend API status.
+Open the Vite URL shown in the client terminal. The page should show the TokTickIT heading, a Bootstrap-styled foundation card, the live backend API status, and the seeded IT request categories.
 
 ## Test and build
 
