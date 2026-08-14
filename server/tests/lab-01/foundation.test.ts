@@ -10,3 +10,15 @@ describe("Express foundation", () => {
     expect(response.body.service).toBe("TokTickIT API");
   });
 });
+
+describe("API health check", () => {
+  it("returns an OK status for the TokTickIT API", async () => {
+    const response = await request(app).get("/api/health");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      status: "ok",
+      service: "TokTickIT API",
+    });
+  });
+});

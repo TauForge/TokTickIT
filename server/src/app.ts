@@ -13,4 +13,11 @@ app.get("/", (_request, response) => {
   });
 });
 
+app.get("/api/health", (_request, response) => {
+  response.status(200).json({
+    status: "ok",
+    service: "TokTickIT API",
+  });
+});
+
 export { app };
