@@ -8,15 +8,24 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000"
   "",
 );
 const healthEndpoint = `${apiBaseUrl}/api/health`;
+const categoriesEndpoint = `${apiBaseUrl}/api/categories`;
 
 type HealthResponse = {
   service: string;
   status: string;
 };
 
+type Category = {
+  id: number;
+  name: string;
+};
+
 export function App() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [healthError, setHealthError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -69,6 +78,62 @@ export function App() {
     };
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), healthTimeoutMs);
+
+    const loadCategories = async () => {
+      try {
+        const response = await fetch(categoriesEndpoint, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Categories API responded with HTTP ${response.status}.`);
+        }
+
+        const payload = (await response.json()) as unknown;
+
+        if (
+          !Array.isArray(payload) ||
+          payload.some(
+            (category) =>
+              typeof category !== "object" ||
+              category === null ||
+              typeof category.id !== "number" ||
+              typeof category.name !== "string",
+          )
+        ) {
+          throw new Error("Categories API returned an unexpected response.");
+        }
+
+        if (isMounted) {
+          setCategories(payload);
+        }
+      } catch (_error) {
+        if (isMounted) {
+          setCategoriesError(
+            "Unable to load IT request categories. Start the backend and try again.",
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setCategoriesLoading(false);
+        }
+        window.clearTimeout(timeoutId);
+      }
+    };
+
+    void loadCategories();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
   return (
     <main className="container py-5">
       <section className="card border-0 shadow-sm">
@@ -88,6 +153,24 @@ export function App() {
               <p role="alert" className="text-danger">
                 {healthError}
               </p>
+            )}
+          </div>
+          <div className="mt-4" aria-live="polite">
+            <h2 className="h5">IT request categories</h2>
+            {categoriesLoading && <p>Loading categories…</p>}
+            {categoriesError && (
+              <p role="alert" className="text-danger">
+                {categoriesError}
+              </p>
+            )}
+            {!categoriesLoading && !categoriesError && (
+              <ul aria-label="IT request categories" className="list-group">
+                {categories.map((category) => (
+                  <li key={category.id} className="list-group-item">
+                    {category.name}
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
         </div>
