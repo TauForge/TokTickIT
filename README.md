@@ -4,7 +4,7 @@ TokTickIT is an IT service desk application being built through the CPE334 indiv
 
 ## Current branch scope
 
-This branch contains Issue 1, Project Foundation only:
+This branch contains the Issue 1 foundation and Issue 2 API health check:
 
 - React + TypeScript + Vite frontend with Bootstrap styling
 - Node.js + Express + TypeScript backend
@@ -12,8 +12,10 @@ This branch contains Issue 1, Project Foundation only:
 - Prisma schema and generated-client configuration
 - Vitest and Supertest test commands
 - Environment and repository safety templates
+- `GET /api/health` with a Supertest verification
+- React health status, loading state, and backend-unavailable error state
 
-Health checks, request categories, database seeding, category APIs, and the category-list UI are intentionally not implemented on this branch. They belong to later feature branches.
+Request categories, database seeding, category APIs, and the category-list UI are intentionally not implemented on this branch. They belong to later feature branches.
 
 ## Prerequisites
 
@@ -35,7 +37,7 @@ npm --prefix server run prisma:validate
 
 The local database is PostgreSQL at `localhost:5432`. The database credentials are development-only values from `.env.example`; never commit `server/.env` or any real credentials.
 
-## Run the foundation
+## Run the foundation and health check
 
 In separate terminals:
 
@@ -44,7 +46,7 @@ npm run dev:server
 npm run dev:client
 ```
 
-Open the Vite URL shown in the client terminal. The page should show the TokTickIT heading and a Bootstrap-styled foundation card.
+Open the Vite URL shown in the client terminal. The page should show the TokTickIT heading, a Bootstrap-styled foundation card, and the live backend API status.
 
 ## Test and build
 
