@@ -4,7 +4,7 @@ TokTickIT is an IT service desk application being built through the CPE334 indiv
 
 ## Current branch scope
 
-This branch contains the Issue 1 foundation and Issue 2 API health check:
+This branch contains the Issue 1 foundation, Issue 2 API health check, and Issue 3 category seed:
 
 - React + TypeScript + Vite frontend with Bootstrap styling
 - Node.js + Express + TypeScript backend
@@ -14,8 +14,9 @@ This branch contains the Issue 1 foundation and Issue 2 API health check:
 - Environment and repository safety templates
 - `GET /api/health` with a Supertest verification
 - React health status, loading state, and backend-unavailable error state
+- Prisma `Category` model, migration, and idempotent seed for four IT request categories
 
-Request categories, database seeding, category APIs, and the category-list UI are intentionally not implemented on this branch. They belong to later feature branches.
+Category APIs and the category-list UI are intentionally not implemented on this branch. They belong to the later feature branch.
 
 ## Prerequisites
 
@@ -34,9 +35,11 @@ npm run install:all
 docker compose up -d db
 npm --prefix server run prisma:generate
 npm --prefix server run prisma:validate
+npm --prefix server run prisma:migrate:deploy
+npm --prefix server run prisma:seed
 ```
 
-The local database is PostgreSQL at `localhost:5432`. The client reads `VITE_API_BASE_URL` from `client/.env`; its development value is `http://localhost:3000`. The database credentials are development-only values from `.env.example`; never commit either `.env` file or any real credentials.
+The local database is PostgreSQL at `localhost:5432`. The migration creates the `Category` table and the seed creates `Account and Access`, `Hardware`, `Software`, and `Network` without duplicates when rerun. The client reads `VITE_API_BASE_URL` from `client/.env`; its development value is `http://localhost:3000`. The database credentials are development-only values from `.env.example`; never commit either `.env` file or any real credentials.
 
 ## Run the foundation and health check
 
