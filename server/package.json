@@ -9,13 +9,18 @@
     "test": "vitest run --config vitest.config.ts",
     "test:watch": "vitest --config vitest.config.ts",
     "prisma:generate": "prisma generate --schema prisma/schema.prisma",
-    "prisma:validate": "prisma validate --schema prisma/schema.prisma"
+    "prisma:validate": "prisma validate --schema prisma/schema.prisma",
+    "prisma:migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
+    "prisma:seed": "prisma db seed"
   },
   "dependencies": {
     "@prisma/client": "^6.13.0",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^5.1.0"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
