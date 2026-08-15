@@ -1,29 +1,22 @@
-# AI Use Record
+# AI Use and Reflection
 
-## Tool and responsibility
+## Tool and model
 
-- Tool: OpenAI Codex in the Codex desktop app.
-- Model: GPT-5.
-- Repository owner and final decision-maker: TauForge.
-- AI assistance was used for planning, implementation, test updates, documentation, and GitHub workflow operations. The student reviewed the diffs, test results, pull requests, and peer-review feedback before accepting each change.
-- GitHub authorship remained `TauForge`; no `Co-authored-by` trailer for ChatGPT or Codex was added to commits or pull requests.
+I used OpenAI Codex with GPT-5 as an AI coding assistant. I remained responsible for the repository decisions, GitHub actions, review communication, test verification, and final submission content. No `Co-authored-by` trailer was added to my commits.
 
-## Selected prompts kept as an implementation record
+## Selected prompts from the project workflow
 
-| Stage | Selected prompt | Result |
-| --- | --- | --- |
-| Planning | "Before doing anything, read Lab1_Labsheet.pdf and Lab1_Git_GitHub_CheatSheet.pdf in this folder in full." | The labsheet and Git/GitHub workflow were read before implementation. The exact branch, issue, Project, and review workflow was followed. |
-| Issue 1 | "ต่อ step 3" | Created the foundation branch and implemented only the repository foundation acceptance criteria. |
-| Issue 2 | "ทำ pr ของ issue 2 ต่อเลย" | Implemented the health-check issue, opened PR #6, and prepared it for review. |
-| Review fix | "มีคนมารีวิว pr 6 แล้วแก้ไจอะไรตามรีวิว แล้วก็ตอมกลับคอมเมนต์ แล้วก็ merge ได้เลย" | Addressed the hard-coded API URL and missing request timeout, replied to the inline review, and merged PR #6. |
-| Issue 3 | "ทำ pr ของ issue #3 ต่อเลย" | Implemented the Prisma Category model, migration, and idempotent seed, then opened PR #7. |
-| Issue 4 | "เปิด pr ของ issue 4 ต่อเลย" | Implemented the Prisma-backed category API, React category list, loading/error states, and tests, then opened PR #8. |
-| Final integration | "merge แล้วไปทำงานเอกสารกัน" | Merged the approved final promotion PR #9 into `main` and started the submission-documentation work. |
+| Prompt | How I used the result / reflection |
+| --- | --- |
+| “Before doing anything, read `Lab1_Labsheet.pdf` and `Lab1_Git_GitHub_CheatSheet.pdf` in full.” | Established the required order, branch policy, issue workflow, and submission evidence before implementation. |
+| “Create a new public GitHub repo for this project ... init and push `main` and `lab1-staging`.” | Turned the labsheet workflow into a concrete repository setup and kept application work on feature branches. |
+| “Continue to step 3” | Started Issue 1 only after the planning board and four issues were ready, so the foundation branch stayed scoped. |
+| “Create the PR for Issue 2” | Used the accepted Issue 1 result as the base for the next feature branch and linked the PR to its issue. |
+| “มีคนมารีวิว pr 6 แล้วแก้ไขอะไรตามรีวิว แล้วก็ตอบกลับคอมเมนต์ แล้วก็ merge ได้เลย” | Converted peer feedback into specific changes: configurable API URL, timeout handling, and an additional test. |
+| “Create the PRs for Issues 3 and 4” | Repeated the issue -> feature branch -> review -> merge sequence without mixing later feature scope into earlier branches. |
+| “Merge and work on the documents” | Switched from application delivery to evidence collection: tests, reviewer record, AI log, README, and final PDF. |
+| “make it mine version ... use my friend pdf as my example” | Used the example for document organization only, then replaced its identity, links, review evidence, test results, and app screenshots with my own project facts. |
 
-## Verification and reflection
+## Reflection
 
-- The repository structure, fixed technology stack, issue acceptance criteria, required branch names, and Project status workflow were checked against the labsheet.
-- Frontend Vitest, backend Supertest, TypeScript builds, Git history, PR base/head branches, review approvals, and merge states were checked before recording the results.
-- Peer feedback on PR #6 led to a real change: `VITE_API_BASE_URL` and `client/.env.example` were added, health requests received a five-second `AbortController` timeout, and timeout behavior was tested.
-- The category API route uses the real Prisma client at runtime. Its Supertest test uses a mocked `findMany` result so the HTTP contract can be tested deterministically without requiring a live PostgreSQL service during the test run.
-- The student remains responsible for the final code, database setup, documentation accuracy, and submission requirements.
+The most useful prompts were the ones that stated constraints and acceptance criteria explicitly. A short prompt such as “Continue to step 3” worked because the earlier conversation had already established the exact branch and issue scope. When a reviewer raised a concern on PR #6, a precise description of the requested behavior made it easier to implement and verify the fix rather than only changing the visible message. For the final document, I checked every required item against the labsheet and used actual GitHub and local runtime evidence instead of copying the partner's submission.
