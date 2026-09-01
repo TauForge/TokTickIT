@@ -126,7 +126,7 @@ export function CreateTicket({
             </p>
           )}
 
-          <form onSubmit={handleSubmit} noValidate>
+          <form className="zg-card" onSubmit={handleSubmit} noValidate>
             <div className="mb-3">
               <span className="form-label d-block">Requester</span>
               <p className="form-control-plaintext">{requesterName}</p>

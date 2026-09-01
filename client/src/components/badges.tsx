@@ -9,7 +9,7 @@ export function PriorityBadge({ value, kind }: { value: string; kind: "requested
   return (
     <span
       data-testid={`priority-badge-${kind}`}
-      className={`badge priority-badge priority-badge-${value.toLowerCase()}`}
+      className={`badge priority-badge priority-badge-${value.toLowerCase()} zg-badge zg-priority-badge-${value.toLowerCase()}`}
     >
       {PRIORITY_LABEL[value] ?? value}
     </span>
@@ -18,7 +18,10 @@ export function PriorityBadge({ value, kind }: { value: string; kind: "requested
 
 export function StatusBadge({ value }: { value: string }) {
   return (
-    <span data-testid="status-badge" className={`badge status-badge status-badge-${value.toLowerCase()}`}>
+    <span
+      data-testid="status-badge"
+      className={`badge status-badge status-badge-${value.toLowerCase()} zg-badge zg-status-badge-${value.toLowerCase()}`}
+    >
       {STATUS_LABEL[value] ?? value}
     </span>
   );

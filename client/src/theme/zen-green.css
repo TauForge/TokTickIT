@@ -1,11 +1,128 @@
-/* client/src/theme/zen-green.css — minimal stub; Task 22 replaces this with the full
-   Zen Green token set and component styles from ui-spec.md. This file must exist before
-   App.tsx imports it below, or Vite/Vitest fail to resolve the import for the rest of
-   Issues 4-6. */
+/* client/src/theme/zen-green.css — Zen Green theme tokens and component styles
+   (Task 22). Replaces the Task 15 stub. Source: docs/lab-02/ui-spec.md. */
+
 :root {
-  --zg-primary: #006b3c;
-  --zg-bg: #f5f7f6;
+  --zg-primary: #006B3C;
+  --zg-secondary: #0B7A46;
+  --zg-pale: #EAF6EF;
+  --zg-bg: #F5F7F6;
+  --zg-surface: #FFFFFF;
+  --zg-border: #D8E3DE;
+  --zg-text: #1F2E28;
+  --zg-readonly-bg: #F0EFE6;
+  --zg-error: #B3261E;
+  --zg-warning: #B5760B;
+
+  /* Badge palette (Task 22 addition — stays within the green/amber/red palette
+     already established above; not part of the brief's literal Step 1 sample). */
+  --zg-priority-low: var(--zg-pale);
+  --zg-priority-low-text: var(--zg-primary);
+  --zg-priority-medium: #FCEFD9;
+  --zg-priority-medium-text: var(--zg-warning);
+  --zg-priority-high: #FBEAE9;
+  --zg-priority-high-text: var(--zg-error);
+  --zg-status-new: var(--zg-pale);
+  --zg-status-new-text: var(--zg-primary);
 }
-body {
-  background: var(--zg-bg);
+
+body { background: var(--zg-bg); color: var(--zg-text); }
+
+.zg-app-header {
+  background: var(--zg-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.zg-app-header nav a { color: #fff; margin-right: 16px; text-decoration: none; }
+.zg-app-header nav a.active { border-bottom: 2px solid var(--zg-secondary); font-weight: 600; }
+
+.zg-card {
+  background: var(--zg-surface);
+  border: 1px solid var(--zg-border);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  padding: 16px 24px;
+  margin: 16px auto;
+  max-width: 1100px;
+}
+
+.zg-card label { display: block; font-size: 13px; font-weight: 600; margin-top: 12px; }
+.zg-card input, .zg-card select, .zg-card textarea {
+  width: 100%;
+  height: 40px;
+  background: #fff;
+  border: 1px solid var(--zg-border);
+  border-radius: 6px;
+  padding: 0 10px;
+}
+.zg-card textarea { height: 96px; padding: 10px; resize: vertical; }
+.zg-card input:focus, .zg-card select:focus, .zg-card textarea:focus {
+  outline: 2px solid var(--zg-secondary);
+  outline-offset: 1px;
+}
+.zg-card input:disabled, .zg-card select:disabled, .zg-card button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.zg-field-error { color: var(--zg-error); font-size: 13px; margin: 4px 0 0; }
+
+.zg-readonly, dd { background: var(--zg-readonly-bg); padding: 6px 10px; border-radius: 6px; }
+
+button[type="submit"], .zg-primary-button {
+  background: var(--zg-primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  min-height: 44px;
+  font-weight: 600;
+}
+button:not([type="submit"]):not(.zg-primary-button) {
+  background: #fff;
+  color: var(--zg-secondary);
+  border: 1px solid var(--zg-secondary);
+  border-radius: 6px;
+  min-height: 44px;
+  padding: 8px 16px;
+}
+
+.zg-error-callout { background: #FBEAE9; border-left: 3px solid var(--zg-error); padding: 10px 14px; }
+.zg-success-callout { background: var(--zg-pale); border-left: 3px solid var(--zg-primary); padding: 10px 14px; }
+.zg-empty-state, .zg-no-results-state { text-align: center; padding: 40px 16px; color: #5b6b64; }
+
+.zg-table { width: 100%; border-collapse: collapse; }
+.zg-table th { text-align: left; background: var(--zg-pale); padding: 8px 10px; font-size: 13px; }
+.zg-table td { padding: 8px 10px; border-bottom: 1px solid var(--zg-border); }
+
+/* Status/priority badges (Task 22 addition, applied in client/src/components/badges.tsx).
+   ui-spec.md: "Status/priority badges never rely on color alone" — the badge text (Low/
+   Medium/High/New) already satisfies that; these classes are the visual reinforcement. */
+.zg-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+.zg-priority-badge-low { background: var(--zg-priority-low); color: var(--zg-priority-low-text); }
+.zg-priority-badge-medium { background: var(--zg-priority-medium); color: var(--zg-priority-medium-text); }
+.zg-priority-badge-high { background: var(--zg-priority-high); color: var(--zg-priority-high-text); }
+.zg-status-badge-new { background: var(--zg-status-new); color: var(--zg-status-new-text); }
+
+@media (max-width: 767px) {
+  .zg-card { margin: 8px; padding: 12px 16px; }
+  .zg-table, .zg-table thead { display: none; }
+  .zg-table tbody tr {
+    display: block;
+    border: 1px solid var(--zg-border);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    padding: 8px;
+  }
+  .zg-table tbody td { display: block; padding: 4px 0; border: none; }
 }
