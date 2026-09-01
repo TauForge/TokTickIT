@@ -51,7 +51,7 @@ export function CreateTicket({
 }: {
   requesterId: number;
   requesterName: string;
-  onCreated: (ticketNumber: string) => void;
+  onCreated: (ticket: { id: string; ticketNumber: string }) => void;
 }) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [relatedSystems, setRelatedSystems] = useState<RelatedSystem[]>([]);
@@ -90,7 +90,7 @@ export function CreateTicket({
     setFieldErrors([]);
     setSubmitting(true);
     try {
-      const ticket = await apiPost<{ ticketNumber: string }>(
+      const ticket = await apiPost<{ id: string; ticketNumber: string }>(
         "/api/tickets",
         {
           summary,
@@ -102,7 +102,7 @@ export function CreateTicket({
         requesterId,
       );
       setTicketNumber(ticket.ticketNumber);
-      onCreated(ticket.ticketNumber);
+      onCreated(ticket);
     } catch (error) {
       const err = error as Error & { fieldErrors?: FieldError[] };
       if (err.fieldErrors?.length) {
