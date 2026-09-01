@@ -161,12 +161,50 @@ AC-20 Given the Category dropdown loads only active Categories, when a Category 
 deactivated, then Tickets already referencing it still show that Category's name correctly.
 
 ## 10. Definition of Done
-- Every FR/BR above is implemented; every AC above has at least one passing automated test.
-- Unit, API, UI component, UI style/visual, and E2E tests all pass on lab2-staging.
-- No required test is skipped, disabled, or commented out.
-- README/setup instructions for Lab 2 are current.
-- All 8 Issues merged into lab2-staging via peer-reviewed PRs (opened/merged manually, never by
-  an automated task in this plan).
+Walked task-by-task during Task 25 (final integration pass). Result per item:
+
+- [x] Every AC above has at least one passing automated test. Cross-checked tests.md §3's
+  traceability table against the actual test files on disk (not just trusted as written): every
+  AC-01..AC-20 resolves to at least one real file under `server/tests/lab-02/`,
+  `client/tests/lab-02/`, or `e2e/lab-02/`, and every one of those files is in the passing test
+  run recorded in tests.md §6 (server 63/63, client 14/14, e2e 11/11). No AC is orphaned.
+- [~] Every FR/BR above is implemented — **one tracked gap**: FR-30 ("System shall render every
+  Lab 2 screen per ui-spec.md's Zen Green tokens and responsive rules") is only partially met.
+  Task 22 applied the `--zg-*` CSS custom properties and several element-level rules (`body`,
+  `dd`, `button[type=submit]`) globally, and the badge classes (`zg-badge`,
+  `zg-priority-badge-*`, `zg-status-badge-*`) are wired into `client/src/components/badges.tsx`,
+  and `zg-card` is wired into `CreateTicket.tsx`'s form — those render correctly. But
+  `zen-green.css` also defines `.zg-app-header`, `.zg-table` (including its mobile
+  card-collapse breakpoint), `.zg-empty-state`/`.zg-no-results-state`,
+  `.zg-error-callout`/`.zg-success-callout`, `.zg-field-error`, and `.zg-readonly`/`.zg-card` on
+  the other three screens — and grepping `client/src/` for these class names confirms none of
+  them are actually applied in `App.tsx` (shell/header), `MyTickets.tsx` (table, empty/no-results
+  states), `TicketDetail.tsx` (read-only fields, card), or `DevRequesterSelect.tsx` (card, error
+  states). This was self-identified and explicitly deferred during Task 22's own code review
+  (see `progress.md` "Task 22" entry) as outside that task's PATH-scoped file list, flagged for
+  this final DoD check. Functionally harmless — no AC/test fails because of it, and the
+  Playwright visual checks (VISUAL-01) don't assert on class names, only on layout/overflow — but
+  it is a real, honest gap against FR-30's literal wording. All other FRs/BRs were spot-checked
+  against their corresponding AC test evidence and are implemented.
+- [x] Unit, API, UI component, UI style/visual, and E2E tests all pass. Run from branch
+  `claude/vibrant-haibt-fdf325` rather than `lab2-staging` — this plan was executed with every
+  task committed directly to one implementation branch instead of the brief's per-issue
+  `feature/*` → `lab2-staging` branch/PR model (an explicit, controller-authorized deviation from
+  early in this session; see the branching-model note in `progress.md`). No `lab2-staging` branch
+  exists in this repo to run from. Full results in tests.md §6.
+- [x] No required test is skipped, disabled, or commented out. Verified by grepping every
+  `*.test.ts`/`*.test.tsx`/`*.spec.ts` file for `.skip(`, `.only(`, `xdescribe`, `xit(` — zero
+  matches.
+- [x] README/setup instructions for Lab 2 are current. Added a "Lab 2" section to the root
+  `README.md` (`ATTACHMENT_STORAGE_DIR`, the one-time `toktickit_test` database setup, and how to
+  run `e2e/`).
+- [ ] All 8 Issues merged into lab2-staging via peer-reviewed PRs — **not done, and intentionally
+  not attempted by this task.** No PR was ever opened or merged for any of the 8 Issues during
+  this plan's execution (everything landed as direct commits to `claude/vibrant-haibt-fdf325`,
+  per the branching-model deviation above). This checklist item, and opening/merging the actual
+  PR(s) into `lab2-staging` and then `main`, remain manual, human-driven actions per this plan's
+  own design (see task-25-brief.md's closing note) — Task 25 does not push or open a PR and
+  cannot check this item off on the user's behalf.
 
 ## 11. Assumptions and Decisions
 - Cross-owner access returns 404, not 403, to avoid confirming another Requester's Ticket exists.

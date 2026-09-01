@@ -65,6 +65,10 @@ describe("MyTickets", () => {
     expect(screen.getByText("Laptop battery drains quickly")).toBeInTheDocument();
     expect(screen.getByTestId("priority-badge-requested")).toHaveTextContent("Medium");
     expect(screen.getByTestId("status-badge")).toHaveTextContent("New");
+    expect(screen.getByRole("link", { name: "TKT-2026-000001" })).toHaveAttribute(
+      "href",
+      "/tickets/t1",
+    );
   });
 
   it("sends categoryId, status, and sort as query parameters when filters are changed", async () => {
