@@ -15,3 +15,17 @@ Reviewer identity: peer classmates on the TauForge/TokTickIT repo (N0M3KM, MacOv
 
 This table is updated as each PR is opened, reviewed, and merged — never opened/merged by an
 automated task; each row is filled in by hand once the corresponding manual PR step happens.
+
+## Reviews given to peers
+
+TauForge also reviewed classmates' Lab 2 PRs on their own repos, per the course's peer-review requirement.
+
+| Repo | PR | Title | Comments Given | Response |
+|---|---|---|---|---|
+| N0M3KM/TokTickIT | #18 | Feature 5: Specification | "LGTM!" | Approved |
+| N0M3KM/TokTickIT | #20 | Feature 7: Reference Data API | "Looks good to me. The API endpoints, sorting/filtering behavior, and test coverage all look good." | Approved |
+| N0M3KM/TokTickIT | #21 | Feature 8: Add ticket and attachment endpoints with validation and tests | "Looks good to me. The ticket and attachment endpoints, validation, and test coverage look solid." | Approved |
+| N0M3KM/TokTickIT | #22 | Feature 9: Add Dev Requester Selection screen and application shell | "Looks good to me. The requester selection flow, app shell, routing, and test coverage look solid." | Approved |
+| MacOverlorD/toktickit | #20 | docs: define Lab 2 engineering contract | Requested changes — asked for an example of the idempotent ticket-number generation rules in specification.md | Author added the example, re-reviewed and approved |
+| MacOverlorD/toktickit | #21 | feat: add Lab 2 ticket data foundation | Requested changes — one blocking item on `Requester.email` before it locks in as the identity key for the rest of Lab 2 | Author addressed it, re-reviewed and approved |
+| MacOverlorD/toktickit | #22 | feat: establish Lab 2 Zen Green UI foundation | Requested changes — asked for a test covering mobile navigation/menu behavior | Author added the test, re-reviewed and approved |
