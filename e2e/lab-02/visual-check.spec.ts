@@ -16,7 +16,7 @@ async function selectFirstRequesterAndCreateTicket(page: import("@playwright/tes
   await page.getByLabel(/^category/i).selectOption({ index: 1 });
   await page.getByLabel(/requested priority/i).selectOption("LOW");
   await page.getByRole("button", { name: /submit/i }).click();
-  await page.waitForURL(/\/tickets\/.+/);
+  await page.waitForURL(/\/tickets\/(?!new)[^/]+$/);
   return page.url();
 }
 
