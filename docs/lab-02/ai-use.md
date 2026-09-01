@@ -1,6 +1,6 @@
 # Lab 2 AI Use and Reflection
 
-LLM used: [fill in]
+LLM used: Claude (Sonnet 5, via Claude Code), running a spec-driven, subagent-per-task workflow with an independent reviewer subagent after every task.
 
 | # | Prompt (summarized) | Purpose |
 |---|---|---|
@@ -12,5 +12,5 @@ LLM used: [fill in]
 | 6 | "Review the implementation against every acceptance criterion in specification.md; report gaps." | Task 25 completion review |
 
 ## My Reflection
-[2-4 sentences, filled in after Issue 8: what the AI agent got right/wrong, what required manual
-correction, and one thing learned about spec-driven development.]
+
+The agent got the mechanical parts right on the first pass, atomic ticket numbering, the 404-not-403 ownership check, the transaction-locked attachment cap, but it missed one integration gap no single task owned: nothing linked the My Tickets list to Ticket Detail until the final whole-branch review caught it. That was the clearest lesson from this lab. Per-task review checks a task against its own brief, but only a pass over the whole branch catches the seams between tasks. I also had to push back once on scope, when a task's own brief listed a file it never actually specified changes for, the agent flagged the gap and asked for a ruling instead of guessing, which I'd rather have than a silent assumption baked into the schema.
