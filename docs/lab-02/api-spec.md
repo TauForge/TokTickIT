@@ -43,8 +43,11 @@ Example: `GET /api/tickets?search=laptop&status=NEW&page=1&pageSize=10`
   `requestedPriority` (BR-04).
 - Endpoints 7, 8, 9, 10, 11 all re-check `ticket.requesterId === req.requester.id` (or the
   attachment's parent ticket's requesterId) and return 404 — not 403 — on mismatch (BR-18).
-- Endpoint 8 checks the active-attachment count for the ticket BEFORE writing the file to disk;
-  a 6th attempt returns 409 without touching storage.
+- Endpoint 8 validates file type and size (415/413) before anything is stored. The 5-attachment
+  cap is enforced inside a locked transaction AFTER the file is written to disk, so a 409 (cap
+  reached) can leave an orphaned file on disk with no corresponding database row — this is an
+  intentional tradeoff: an orphaned file is a safer failure mode than a database row with no
+  backing file.
 - Endpoint 10 returns 404 (not a 200 with an error body) if the attachment is soft-removed —
   the response must never leak that a removed file used to exist with real bytes.
 - Endpoint 5 and endpoint 8 are independent calls; a Ticket created successfully is never rolled

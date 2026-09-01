@@ -52,7 +52,9 @@ npm run dev:server
 npm run dev:client
 ```
 
-Open the Vite URL shown in the client terminal. The page should show the TokTickIT heading, a Bootstrap-styled foundation card, the live backend API status, and the seeded IT request categories.
+Open the Vite URL shown in the client terminal. The app now opens on the Development Requester
+selector screen; after picking a requester you land on My Tickets, from where you can create a
+ticket or open an existing one on the Ticket Detail screen.
 
 ## Test and build
 

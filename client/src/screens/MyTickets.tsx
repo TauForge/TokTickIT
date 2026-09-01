@@ -272,7 +272,9 @@ export function MyTickets({ requesterId }: { requesterId: number }) {
             <tbody>
               {data.items.map((ticket) => (
                 <tr key={ticket.id}>
-                  <td>{ticket.ticketNumber}</td>
+                  <td>
+                    <Link to={`/tickets/${ticket.id}`}>{ticket.ticketNumber}</Link>
+                  </td>
                   <td>{new Date(ticket.createdAt).toLocaleString()}</td>
                   <td>{ticket.summary}</td>
                   <td>{ticket.categoryName}</td>
