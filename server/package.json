@@ -17,7 +17,8 @@
     "@prisma/client": "^6.13.0",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "multer": "^2.3.0"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.3",
+    "@types/multer": "^2.2.0",
     "@types/node": "^22.15.30",
     "@types/supertest": "^6.0.3",
     "prisma": "^6.13.0",

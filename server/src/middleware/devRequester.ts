@@ -1,4 +1,5 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
+import { Request, ParamsDictionary } from "express-serve-static-core";
 import { prisma } from "../prisma";
 import { HttpError } from "./errorEnvelope";
 
@@ -17,7 +18,11 @@ declare global {
   }
 }
 
-export async function resolveDevRequester(req: Request, _res: Response, next: NextFunction) {
+export async function resolveDevRequester<P = ParamsDictionary>(
+  req: Request<P>,
+  _res: Response,
+  next: NextFunction,
+) {
   try {
     const header = req.header("x-dev-requester-id");
     const id = header ? Number(header) : NaN;

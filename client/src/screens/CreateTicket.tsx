@@ -51,7 +51,7 @@ export function CreateTicket({
 }: {
   requesterId: number;
   requesterName: string;
-  onCreated: (ticketNumber: string) => void;
+  onCreated: (ticket: { id: string; ticketNumber: string }) => void;
 }) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [relatedSystems, setRelatedSystems] = useState<RelatedSystem[]>([]);
@@ -62,7 +62,6 @@ export function CreateTicket({
   const [requestedPriority, setRequestedPriority] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldError[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [ticketNumber, setTicketNumber] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -90,7 +89,7 @@ export function CreateTicket({
     setFieldErrors([]);
     setSubmitting(true);
     try {
-      const ticket = await apiPost<{ ticketNumber: string }>(
+      const ticket = await apiPost<{ id: string; ticketNumber: string }>(
         "/api/tickets",
         {
           summary,
@@ -101,8 +100,7 @@ export function CreateTicket({
         },
         requesterId,
       );
-      setTicketNumber(ticket.ticketNumber);
-      onCreated(ticket.ticketNumber);
+      onCreated(ticket);
     } catch (error) {
       const err = error as Error & { fieldErrors?: FieldError[] };
       if (err.fieldErrors?.length) {
@@ -115,18 +113,6 @@ export function CreateTicket({
     } finally {
       setSubmitting(false);
     }
-  }
-
-  if (ticketNumber) {
-    return (
-      <main className="container py-5">
-        <section className="card border-0 shadow-sm">
-          <div className="card-body p-4">
-            <p role="status">Ticket created. Your ticket number is {ticketNumber}.</p>
-          </div>
-        </section>
-      </main>
-    );
   }
 
   return (
