@@ -1,24 +1,19 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./theme/zen-green.css";
 
-import { BrowserRouter, Link, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
+import { BrowserRouter, Link, Navigate, Route, Routes } from "react-router-dom";
 import { DevRequesterProvider, useDevRequester } from "./api/devRequesterContext";
 import { DevRequesterSelect } from "./screens/DevRequesterSelect";
 import { CreateTicket } from "./screens/CreateTicket";
 import { MyTickets } from "./screens/MyTickets";
-import { TicketDetail } from "./screens/TicketDetail";
-
-function TicketDetailRoute({ requesterId }: { requesterId: number }) {
-  const { id } = useParams();
-  return <TicketDetail ticketId={id ?? ""} requesterId={requesterId} />;
-}
 
 function Shell() {
   const { selectedId, requesters, clearSelection } = useDevRequester();
-  const navigate = useNavigate();
+  const [justCreated, setJustCreated] = useState<string | null>(null);
 
   if (!selectedId) {
-    return <DevRequesterSelect onContinue={() => {}} />;
+    return <DevRequesterSelect onContinue={() => setJustCreated(null)} />;
   }
 
   const current = requesters.find((r) => r.id === selectedId);
@@ -50,14 +45,14 @@ function Shell() {
             <CreateTicket
               requesterId={selectedId}
               requesterName={current?.name ?? ""}
-              onCreated={(ticket) => navigate(`/tickets/${ticket.id}`)}
+              onCreated={setJustCreated}
             />
           }
         />
-        <Route path="/tickets/:id" element={<TicketDetailRoute requesterId={selectedId} />} />
         <Route path="/" element={<Navigate to="/tickets" replace />} />
         <Route path="*" element={<Navigate to="/tickets" replace />} />
       </Routes>
+      {justCreated && <p className="text-center mt-3">Last created: {justCreated}</p>}
     </div>
   );
 }

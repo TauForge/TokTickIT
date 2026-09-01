@@ -45,11 +45,11 @@ describe("CreateTicket", () => {
     expect(calls).toHaveLength(2);
   });
 
-  it("shows the current Requester read-only, then hands the created ticket to onCreated on success", async () => {
+  it("shows the current Requester read-only, then disables Submit in flight and shows the ticket number on success", async () => {
     mockFetchSequence([
       { ok: true, json: async () => [{ id: 1, name: "Hardware", code: "HARDWARE" }] },
       { ok: true, json: async () => [] },
-      { ok: true, json: async () => ({ id: "t1", ticketNumber: "TKT-2026-000001" }) },
+      { ok: true, json: async () => ({ ticketNumber: "TKT-2026-000001" }) },
     ]);
     const onCreated = vi.fn();
     const user = userEvent.setup();
@@ -72,12 +72,7 @@ describe("CreateTicket", () => {
     const submit = screen.getByRole("button", { name: /submit/i });
     await user.click(submit);
 
-    // CreateTicket itself never renders a static success message — it hands the full created
-    // ticket (id + ticketNumber) to onCreated, which is what App.tsx uses to navigate the
-    // Requester straight to /tickets/:id (Task 21, Step 6). Asserting on the callback payload,
-    // not on any local success UI, is what actually exercises that contract.
-    await waitFor(() =>
-      expect(onCreated).toHaveBeenCalledWith({ id: "t1", ticketNumber: "TKT-2026-000001" }),
-    );
+    await waitFor(() => expect(screen.getByText(/TKT-2026-000001/)).toBeInTheDocument());
+    expect(onCreated).toHaveBeenCalled();
   });
 });

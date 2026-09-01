@@ -140,22 +140,3 @@ ticketsRouter.get("/", resolveDevRequester, async (req, res, next) => {
     next(error);
   }
 });
-
-ticketsRouter.get("/:id", resolveDevRequester, async (req, res, next) => {
-  try {
-    const ticket = await prisma.ticket.findUnique({
-      where: { id: req.params.id },
-      include: { category: true, relatedSystem: true },
-    });
-
-    // BR-18/AC-03/FR-20: a ticket owned by another requester must look identical to a
-    // nonexistent ticket (404, not 403) so requesters can't probe which ticket ids exist.
-    if (!ticket || ticket.requesterId !== req.requester!.id) {
-      throw new HttpError(404, "NOT_FOUND", "Ticket not found");
-    }
-
-    res.status(200).json(toTicketDto(ticket));
-  } catch (error) {
-    next(error);
-  }
-});
