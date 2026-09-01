@@ -64,6 +64,12 @@ npm run build:client
 npm run build:server
 ```
 
+## Lab 1 submission documentation
+
+- [AI use record](docs/lab-01/ai_use.md)
+- [Peer-review record](docs/lab-01/reviewer.md)
+- [Test evidence](docs/lab-01/tests.md)
+
 ## Lab 2: Requester Ticketing MVP
 
 Lab 2 adds the Development Requester selector, ticket creation, My Tickets, Ticket Detail, and
