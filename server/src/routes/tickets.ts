@@ -2,10 +2,45 @@ import { Router } from "express";
 import { prisma } from "../prisma";
 import { resolveDevRequester } from "../middleware/devRequester";
 import { validateCreateTicketRequest } from "../validators/createTicketRequest";
+import { parseTicketQuery } from "../validators/ticketQuery";
 import { generateTicketNumber } from "../services/ticketNumber";
 import { HttpError } from "../middleware/errorEnvelope";
 
 export const ticketsRouter = Router();
+
+function toTicketDto(ticket: {
+  id: string;
+  ticketNumber: string;
+  summary: string;
+  description: string;
+  categoryId: number;
+  category: { name: string };
+  relatedSystemId: number | null;
+  relatedSystem: { name: string } | null;
+  requestedPriority: string;
+  itPriority: string;
+  status: string;
+  requesterId: number;
+  createdAt: Date;
+  updatedAt: Date;
+}) {
+  return {
+    id: ticket.id,
+    ticketNumber: ticket.ticketNumber,
+    summary: ticket.summary,
+    description: ticket.description,
+    categoryId: ticket.categoryId,
+    categoryName: ticket.category.name,
+    relatedSystemId: ticket.relatedSystemId,
+    relatedSystemName: ticket.relatedSystem?.name ?? null,
+    requestedPriority: ticket.requestedPriority,
+    itPriority: ticket.itPriority,
+    status: ticket.status,
+    requesterId: ticket.requesterId,
+    createdAt: ticket.createdAt,
+    updatedAt: ticket.updatedAt,
+  };
+}
 
 ticketsRouter.post("/", resolveDevRequester, async (req, res, next) => {
   try {
@@ -53,21 +88,53 @@ ticketsRouter.post("/", resolveDevRequester, async (req, res, next) => {
       });
     });
 
-    res.status(201).json({
-      id: ticket.id,
-      ticketNumber: ticket.ticketNumber,
-      summary: ticket.summary,
-      description: ticket.description,
-      categoryId: ticket.categoryId,
-      categoryName: ticket.category.name,
-      relatedSystemId: ticket.relatedSystemId,
-      relatedSystemName: ticket.relatedSystem?.name ?? null,
-      requestedPriority: ticket.requestedPriority,
-      itPriority: ticket.itPriority,
-      status: ticket.status,
-      requesterId: ticket.requesterId,
-      createdAt: ticket.createdAt,
-      updatedAt: ticket.updatedAt,
+    res.status(201).json(toTicketDto(ticket));
+  } catch (error) {
+    next(error);
+  }
+});
+
+ticketsRouter.get("/", resolveDevRequester, async (req, res, next) => {
+  try {
+    const query = parseTicketQuery(req.query as Record<string, unknown>);
+    const requesterId = req.requester!.id;
+
+    const where = {
+      requesterId,
+      ...(query.categoryId ? { categoryId: query.categoryId } : {}),
+      ...(query.requestedPriority ? { requestedPriority: query.requestedPriority } : {}),
+      ...(query.itPriority ? { itPriority: query.itPriority } : {}),
+      ...(query.status ? { status: query.status } : {}),
+      ...(query.search
+        ? {
+            OR: [
+              { summary: { contains: query.search, mode: "insensitive" as const } },
+              { ticketNumber: { contains: query.search, mode: "insensitive" as const } },
+            ],
+          }
+        : {}),
+    };
+
+    const [totalItems, tickets] = await Promise.all([
+      prisma.ticket.count({ where }),
+      prisma.ticket.findMany({
+        where,
+        include: { category: true, relatedSystem: true },
+        // id is a secondary sort key so rows created within the same millisecond (realistic
+        // under concurrent creation, e.g. Task 14's 5-concurrent-request test) still produce a
+        // stable, deterministic page order instead of shuffling between pages.
+        orderBy: [{ [query.sort]: query.order }, { id: "asc" }],
+        skip: (query.page - 1) * query.pageSize,
+        take: query.pageSize,
+      }),
+    ]);
+
+    res.status(200).json({
+      items: tickets.map(toTicketDto),
+      page: query.page,
+      pageSize: query.pageSize,
+      totalItems,
+      totalPages: Math.max(1, Math.ceil(totalItems / query.pageSize)),
     });
   } catch (error) {
     next(error);

@@ -6,6 +6,7 @@ import { BrowserRouter, Link, Navigate, Route, Routes } from "react-router-dom";
 import { DevRequesterProvider, useDevRequester } from "./api/devRequesterContext";
 import { DevRequesterSelect } from "./screens/DevRequesterSelect";
 import { CreateTicket } from "./screens/CreateTicket";
+import { MyTickets } from "./screens/MyTickets";
 
 function Shell() {
   const { selectedId, requesters, clearSelection } = useDevRequester();
@@ -37,6 +38,7 @@ function Shell() {
         </div>
       </nav>
       <Routes>
+        <Route path="/tickets" element={<MyTickets requesterId={selectedId} />} />
         <Route
           path="/tickets/new"
           element={
@@ -47,7 +49,8 @@ function Shell() {
             />
           }
         />
-        <Route path="/" element={<Navigate to="/tickets/new" replace />} />
+        <Route path="/" element={<Navigate to="/tickets" replace />} />
+        <Route path="*" element={<Navigate to="/tickets" replace />} />
       </Routes>
       {justCreated && <p className="text-center mt-3">Last created: {justCreated}</p>}
     </div>

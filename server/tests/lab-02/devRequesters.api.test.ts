@@ -23,18 +23,18 @@ describe("GET /api/dev-requesters", () => {
 // explicitly rather than leaving it silently red). Task 16 Step 2 removes ".skip" from all
 // three once GET /api/tickets exists.
 describe("devRequester middleware (via GET /api/tickets, added in Task 16)", () => {
-  it.skip("returns 401 for a missing x-dev-requester-id header", async () => {
+  it("returns 401 for a missing x-dev-requester-id header", async () => {
     const response = await request(app).get("/api/tickets");
     expect(response.status).toBe(401);
     expect(response.body.error.code).toBe("UNAUTHENTICATED");
   });
 
-  it.skip("returns 401 for an unknown requester id", async () => {
+  it("returns 401 for an unknown requester id", async () => {
     const response = await request(app).get("/api/tickets").set("x-dev-requester-id", "999999");
     expect(response.status).toBe(401);
   });
 
-  it.skip("returns 401 for an inactive requester id", async () => {
+  it("returns 401 for an inactive requester id", async () => {
     const inactive = await prisma.requester.findFirst({ where: { isActive: false } });
     const response = await request(app)
       .get("/api/tickets")
