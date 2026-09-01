@@ -52,7 +52,9 @@ npm run dev:server
 npm run dev:client
 ```
 
-Open the Vite URL shown in the client terminal. The page should show the TokTickIT heading, a Bootstrap-styled foundation card, the live backend API status, and the seeded IT request categories.
+Open the Vite URL shown in the client terminal. The app now opens on the Development Requester
+selector screen; after picking a requester you land on My Tickets, from where you can create a
+ticket or open an existing one on the Ticket Detail screen.
 
 ## Test and build
 
@@ -67,3 +69,52 @@ npm run build:server
 - [AI use record](docs/lab-01/ai_use.md)
 - [Peer-review record](docs/lab-01/reviewer.md)
 - [Test evidence](docs/lab-01/tests.md)
+
+## Lab 2: Requester Ticketing MVP
+
+Lab 2 adds the Development Requester selector, ticket creation, My Tickets, Ticket Detail, and
+file attachments on top of the Lab 1 foundation above. See `docs/lab-02/specification.md` for the
+full requirements and `docs/lab-02/tests.md` for the test plan and results.
+
+### Attachment storage
+
+Ticket attachments are written to disk under a directory configured by `ATTACHMENT_STORAGE_DIR`
+in `server/.env` (see `server/.env.example`), for example:
+
+```
+ATTACHMENT_STORAGE_DIR=./uploads
+```
+
+The directory is created automatically on first upload if it doesn't exist and is git-ignored.
+
+### One-time test database setup
+
+Server tests run against a dedicated `toktickit_test` database, kept separate from the `toktickit`
+dev database so tests never touch dev data. Once you have a Postgres instance reachable at the
+connection details in `server/.env`:
+
+```bash
+createdb toktickit_test
+```
+
+Then create `server/.env.test` (git-ignored, not committed) pointing at that database and using a
+test-only upload directory, for example:
+
+```
+DATABASE_URL="postgresql://postgres:<password>@<host>:<port>/toktickit_test"
+ATTACHMENT_STORAGE_DIR=./uploads-test
+```
+
+`cd server && npm test` picks up `server/.env.test` automatically and runs migrations/seeds
+against `toktickit_test`, never against the dev database.
+
+### Running the E2E suite
+
+The `e2e/` package runs Playwright tests against the client and server started in dev mode. It
+starts both dev servers for you (see `e2e/playwright.config.ts`), so no manual `npm run dev` step
+is required first:
+
+```bash
+cd e2e
+npx playwright test
+```
