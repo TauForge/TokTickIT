@@ -111,8 +111,8 @@ existing Category convention). Ticket/Attachment ids are UUID strings instead, b
 exposed in URLs (`/api/tickets/:id`, `/api/attachments/:id`) and must not be sequentially
 guessable, given the 404-not-403 ownership policy in §11 below — an autoincrement id here would
 let one Requester enumerate another's ticket/attachment ids even though each individual lookup
-still correctly 404s. Full schema in api-spec.md §Data Model and in server/prisma/schema.prisma
-itself (Task 6).
+still correctly 404s. Full schema in server/prisma/schema.prisma itself (Task 6); api-spec.md
+covers the DTO/endpoint contract, not the Prisma model definitions.
 
 ## 8. API Contract
 See api-spec.md for the full endpoint table, request/response DTOs, and status codes.
