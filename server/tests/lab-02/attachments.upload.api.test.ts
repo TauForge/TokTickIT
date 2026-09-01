@@ -127,3 +127,64 @@ describe("POST /api/tickets/:id/attachments", () => {
     expect(response.status).toBe(404);
   });
 });
+
+describe("GET /api/tickets/:id/attachments", () => {
+  it("returns attachments uploaded to an owned ticket, including a soft-removed one with a null downloadUrl", async () => {
+    const categoryId = (await prisma.category.findFirst({ where: { isActive: true } }))!.id;
+    const listTicket = await request(app)
+      .post("/api/tickets")
+      .set("x-dev-requester-id", String(requesterId))
+      .send({ summary: "ATTACH-LIST-TEST ticket", description: "Used only to test attachment listing.", categoryId, requestedPriority: "LOW" });
+    const listTicketId = listTicket.body.id;
+
+    const uploaded = await request(app)
+      .post(`/api/tickets/${listTicketId}/attachments`)
+      .set("x-dev-requester-id", String(requesterId))
+      .attach("file", Buffer.from("x"), { filename: "keep.png", contentType: "image/png" });
+    expect(uploaded.status).toBe(201);
+
+    const removedUpload = await request(app)
+      .post(`/api/tickets/${listTicketId}/attachments`)
+      .set("x-dev-requester-id", String(requesterId))
+      .attach("file", Buffer.from("x"), { filename: "removed.png", contentType: "image/png" });
+    expect(removedUpload.status).toBe(201);
+
+    // No removal endpoint exists yet (that's a later task) — soft-remove directly via Prisma to
+    // pin the list route's current (undocumented-until-now) contract: it does not filter out
+    // isRemoved attachments, it only nulls their downloadUrl. Task 20 and the frontend will build
+    // against this, so it needs a test, not just a route comment.
+    await prisma.attachment.update({
+      where: { id: removedUpload.body.id },
+      data: { isRemoved: true, removedAt: new Date(), removedReason: "test cleanup" },
+    });
+
+    const response = await request(app)
+      .get(`/api/tickets/${listTicketId}/attachments`)
+      .set("x-dev-requester-id", String(requesterId));
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(2);
+
+    const kept = response.body.find((a: { id: string }) => a.id === uploaded.body.id);
+    const removed = response.body.find((a: { id: string }) => a.id === removedUpload.body.id);
+
+    expect(kept).toBeDefined();
+    expect(kept.isRemoved).toBe(false);
+    expect(kept.downloadUrl).toBe(`/api/attachments/${uploaded.body.id}/download`);
+
+    expect(removed).toBeDefined();
+    expect(removed.isRemoved).toBe(true);
+    expect(removed.downloadUrl).toBeNull();
+  });
+
+  it("returns 404 for a ticket owned by a different requester", async () => {
+    const otherRequester = await prisma.requester.findFirst({
+      where: { isActive: true, id: { not: requesterId } },
+    });
+    const response = await request(app)
+      .get(`/api/tickets/${ticketId}/attachments`)
+      .set("x-dev-requester-id", String(otherRequester!.id));
+
+    expect(response.status).toBe(404);
+  });
+});

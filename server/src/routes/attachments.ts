@@ -120,7 +120,8 @@ attachmentsRouter.post("/", resolveDevRequester, handleUpload, async (req, res, 
 
 attachmentsRouter.get("/", resolveDevRequester, async (req, res, next) => {
   try {
-    const ticket = await loadOwnedTicket(String(req.params.ticketId), req.requester!.id);
+    const ticketId = (req.params as Record<string, string>).ticketId;
+    const ticket = await loadOwnedTicket(String(ticketId), req.requester!.id);
     const attachments = await prisma.attachment.findMany({
       where: { ticketId: ticket.id },
       orderBy: { createdAt: "asc" },
