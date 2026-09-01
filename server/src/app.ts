@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 import { prisma } from "./prisma";
+import { errorEnvelope } from "./middleware/errorEnvelope";
 
 const app = express();
 
@@ -41,5 +42,7 @@ app.get("/api/categories", async (_request, response) => {
     });
   }
 });
+
+app.use(errorEnvelope);
 
 export { app };
