@@ -1,0 +1,11 @@
+/* client/src/theme/zen-green.css — minimal stub; Task 22 replaces this with the full
+   Zen Green token set and component styles from ui-spec.md. This file must exist before
+   App.tsx imports it below, or Vite/Vitest fail to resolve the import for the rest of
+   Issues 4-6. */
+:root {
+  --zg-primary: #006b3c;
+  --zg-bg: #f5f7f6;
+}
+body {
+  background: var(--zg-bg);
+}
