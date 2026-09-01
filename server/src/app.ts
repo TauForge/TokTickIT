@@ -5,6 +5,7 @@ import { categoriesRouter } from "./routes/categories";
 import { relatedSystemsRouter } from "./routes/relatedSystems";
 import { devRequestersRouter } from "./routes/devRequesters";
 import { ticketsRouter } from "./routes/tickets";
+import { attachmentsRouter } from "./routes/attachments";
 import { errorEnvelope } from "./middleware/errorEnvelope";
 
 const app = express();
@@ -29,6 +30,7 @@ app.get("/api/health", (_request, response) => {
 app.use("/api/categories", categoriesRouter);
 app.use("/api/related-systems", relatedSystemsRouter);
 app.use("/api/dev-requesters", devRequestersRouter);
+app.use("/api/tickets/:ticketId/attachments", attachmentsRouter);
 app.use("/api/tickets", ticketsRouter);
 
 app.use(errorEnvelope);
