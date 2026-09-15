@@ -1,4 +1,5 @@
 import { FieldError } from "../middleware/errorEnvelope";
+import { TicketStatus } from "../services/ticketStatusTransitions";
 
 export interface OwnerRequestInput {
   ownerId: number;
@@ -28,4 +29,20 @@ export function validatePriorityRequest(body: unknown): PriorityValidationResult
     return { ok: false, errors: [{ field: "itPriority", message: "IT Priority must be Low, Medium, or High." }] };
   }
   return { ok: true, value: { itPriority: itPriority as PriorityRequestInput["itPriority"] } };
+}
+
+export interface StatusRequestInput {
+  status: TicketStatus;
+}
+export type StatusValidationResult = { ok: true; value: StatusRequestInput } | { ok: false; errors: FieldError[] };
+
+const STATUSES: TicketStatus[] = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"];
+
+export function validateStatusRequest(body: unknown): StatusValidationResult {
+  const b = (body ?? {}) as Record<string, unknown>;
+  const status = typeof b.status === "string" ? b.status : "";
+  if (!STATUSES.includes(status as TicketStatus)) {
+    return { ok: false, errors: [{ field: "status", message: "A valid status is required." }] };
+  }
+  return { ok: true, value: { status: status as TicketStatus } };
 }
