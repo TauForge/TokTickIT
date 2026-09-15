@@ -3,6 +3,9 @@ import type { TicketStatus as PrismaTicketStatus } from "@prisma/client";
 import { prisma } from "../prisma";
 import { requireAuth, requireRole, blockIfPasswordChangeRequired } from "../middleware/auth";
 import { parseStaffTicketQuery } from "../validators/staffTicketQuery";
+import { HttpError } from "../middleware/errorEnvelope";
+import { isTerminal, TicketStatus } from "../services/ticketStatusTransitions";
+import { validateOwnerRequest } from "../validators/staffTicketMutationRequest";
 
 export const staffTicketsRouter = Router();
 
@@ -78,6 +81,99 @@ staffTicketsRouter.get("/", ...staffGate, async (req, res, next) => {
         totalPages: Math.max(1, Math.ceil(totalItems / query.pageSize)),
       },
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+const STAFF_DETAIL_INCLUDE = {
+  category: true,
+  relatedSystem: true,
+  requester: { select: { displayName: true } },
+  owner: { select: { displayName: true } },
+} as const;
+
+export function toStaffTicketDetailDto(t: {
+  id: string;
+  ticketNumber: string;
+  summary: string;
+  description: string;
+  categoryId: number;
+  category: { name: string };
+  relatedSystemId: number | null;
+  relatedSystem: { name: string } | null;
+  requestedPriority: string;
+  itPriority: string;
+  status: string;
+  requesterId: number;
+  requester: { displayName: string };
+  ownerId: number | null;
+  owner: { displayName: string } | null;
+  resolvedIndicatedByRequester: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}) {
+  return {
+    id: t.id,
+    ticketNumber: t.ticketNumber,
+    summary: t.summary,
+    description: t.description,
+    categoryId: t.categoryId,
+    categoryName: t.category.name,
+    relatedSystemId: t.relatedSystemId,
+    relatedSystemName: t.relatedSystem?.name ?? null,
+    requestedPriority: t.requestedPriority,
+    itPriority: t.itPriority,
+    status: t.status,
+    requesterId: t.requesterId,
+    requesterName: t.requester.displayName,
+    ownerId: t.ownerId,
+    ownerDisplayName: t.owner?.displayName ?? null,
+    resolvedIndicatedByRequester: t.resolvedIndicatedByRequester,
+    createdAt: t.createdAt,
+    updatedAt: t.updatedAt,
+  };
+}
+
+staffTicketsRouter.get("/:id", ...staffGate, async (req, res, next) => {
+  try {
+    const ticket = await prisma.ticket.findUnique({ where: { id: String(req.params.id) }, include: STAFF_DETAIL_INCLUDE });
+    if (!ticket) throw new HttpError(404, "NOT_FOUND", "Ticket not found");
+    res.status(200).json(toStaffTicketDetailDto(ticket));
+  } catch (error) {
+    next(error);
+  }
+});
+
+staffTicketsRouter.patch("/:id/owner", ...staffGate, async (req, res, next) => {
+  try {
+    const validation = validateOwnerRequest(req.body);
+    if (!validation.ok) {
+      throw new HttpError(422, "VALIDATION_FAILED", "One or more fields are invalid", validation.errors);
+    }
+
+    const ticket = await prisma.ticket.findUnique({ where: { id: String(req.params.id) } });
+    if (!ticket) throw new HttpError(404, "NOT_FOUND", "Ticket not found");
+    if (isTerminal(ticket.status as TicketStatus)) {
+      throw new HttpError(409, "TICKET_LOCKED", "This ticket is locked and cannot be reassigned");
+    }
+
+    // BR-14: the target must be an active IT Staff or Administrator user.
+    const newOwner = await prisma.user.findUnique({ where: { id: validation.value.ownerId } });
+    if (!newOwner || !newOwner.isActive || !["IT_STAFF", "ADMINISTRATOR"].includes(newOwner.role)) {
+      throw new HttpError(409, "INVALID_OWNER", "The selected owner is not an active IT Staff or Administrator user");
+    }
+
+    // BR-15: the first ownership assignment auto-transitions NEW -> OPEN; a client never
+    // requests this directly (it isn't in isValidTransition's PATCH-requestable set).
+    const nextStatus = ticket.status === "NEW" ? "OPEN" : ticket.status;
+
+    const updated = await prisma.ticket.update({
+      where: { id: ticket.id },
+      data: { ownerId: newOwner.id, status: nextStatus as TicketStatus },
+      include: STAFF_DETAIL_INCLUDE,
+    });
+    res.status(200).json(toStaffTicketDetailDto(updated));
   } catch (error) {
     next(error);
   }
