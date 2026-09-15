@@ -4,14 +4,26 @@ import { app } from "../../src/app";
 import { prisma } from "../../src/prisma";
 
 let requesterId: number;
+let cookie: string[];
 let ticketId: string;
 
+const cookieCache = new Map<number, string[]>();
+async function cookieFor(userId: number): Promise<string[]> {
+  if (!cookieCache.has(userId)) {
+    const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    const login = await request(app).post("/api/v1/auth/login").send({ email: user.email, password: "DevPass123!" });
+    cookieCache.set(userId, login.headers["set-cookie"]);
+  }
+  return cookieCache.get(userId)!;
+}
+
 beforeAll(async () => {
-  requesterId = (await prisma.requester.findFirst({ where: { isActive: true } }))!.id;
+  requesterId = (await prisma.user.findFirst({ where: { role: "REQUESTER", isActive: true } }))!.id;
+  cookie = await cookieFor(requesterId);
   const categoryId = (await prisma.category.findFirst({ where: { isActive: true } }))!.id;
   const created = await request(app)
-    .post("/api/tickets")
-    .set("x-dev-requester-id", String(requesterId))
+    .post("/api/v1/tickets")
+    .set("Cookie", cookie)
     .send({
       summary: "ATTACH-TEST ticket",
       description: "Used to test attachment upload rules.",
@@ -21,11 +33,11 @@ beforeAll(async () => {
   ticketId = created.body.id;
 });
 
-describe("POST /api/tickets/:id/attachments", () => {
+describe("POST /api/v1/tickets/:id/attachments", () => {
   it("uploads a valid JPG under 5MB", async () => {
     const response = await request(app)
-      .post(`/api/tickets/${ticketId}/attachments`)
-      .set("x-dev-requester-id", String(requesterId))
+      .post(`/api/v1/tickets/${ticketId}/attachments`)
+      .set("Cookie", cookie)
       .attach("file", Buffer.from("fake-jpg-bytes"), { filename: "screenshot.jpg", contentType: "image/jpeg" });
 
     expect(response.status).toBe(201);
@@ -35,8 +47,8 @@ describe("POST /api/tickets/:id/attachments", () => {
 
   it("rejects an unsupported file type with 415", async () => {
     const response = await request(app)
-      .post(`/api/tickets/${ticketId}/attachments`)
-      .set("x-dev-requester-id", String(requesterId))
+      .post(`/api/v1/tickets/${ticketId}/attachments`)
+      .set("Cookie", cookie)
       .attach("file", Buffer.from("not an image"), { filename: "virus.exe", contentType: "application/x-msdownload" });
 
     expect(response.status).toBe(415);
@@ -45,8 +57,8 @@ describe("POST /api/tickets/:id/attachments", () => {
   it("rejects a file over 5MB with 413", async () => {
     const oversized = Buffer.alloc(5 * 1024 * 1024 + 1);
     const response = await request(app)
-      .post(`/api/tickets/${ticketId}/attachments`)
-      .set("x-dev-requester-id", String(requesterId))
+      .post(`/api/v1/tickets/${ticketId}/attachments`)
+      .set("Cookie", cookie)
       .attach("file", oversized, { filename: "big.png", contentType: "image/png" });
 
     expect(response.status).toBe(413);
@@ -54,8 +66,8 @@ describe("POST /api/tickets/:id/attachments", () => {
 
   it("rejects a file whose extension doesn't match an allowed type, even with a spoofed MIME type", async () => {
     const response = await request(app)
-      .post(`/api/tickets/${ticketId}/attachments`)
-      .set("x-dev-requester-id", String(requesterId))
+      .post(`/api/v1/tickets/${ticketId}/attachments`)
+      .set("Cookie", cookie)
       .attach("file", Buffer.from("not actually a png"), { filename: "virus.exe", contentType: "image/png" });
 
     expect(response.status).toBe(415);
@@ -63,8 +75,8 @@ describe("POST /api/tickets/:id/attachments", () => {
 
   it("rejects a 10MB file with 413, not 500 (well above multer's own limit, not just 1 byte over)", async () => {
     const response = await request(app)
-      .post(`/api/tickets/${ticketId}/attachments`)
-      .set("x-dev-requester-id", String(requesterId))
+      .post(`/api/v1/tickets/${ticketId}/attachments`)
+      .set("Cookie", cookie)
       .attach("file", Buffer.alloc(10 * 1024 * 1024), { filename: "huge.png", contentType: "image/png" });
 
     expect(response.status).toBe(413);
@@ -73,22 +85,22 @@ describe("POST /api/tickets/:id/attachments", () => {
   it("returns 409 on the 6th active attachment for a fresh ticket, uploaded independently of other tests", async () => {
     const categoryId = (await prisma.category.findFirst({ where: { isActive: true } }))!.id;
     const freshTicket = await request(app)
-      .post("/api/tickets")
-      .set("x-dev-requester-id", String(requesterId))
+      .post("/api/v1/tickets")
+      .set("Cookie", cookie)
       .send({ summary: "CAP-TEST ticket", description: "Used only to test the 5-attachment cap.", categoryId, requestedPriority: "LOW" });
     const freshTicketId = freshTicket.body.id;
 
     for (let i = 0; i < 5; i += 1) {
       const uploadResponse = await request(app)
-        .post(`/api/tickets/${freshTicketId}/attachments`)
-        .set("x-dev-requester-id", String(requesterId))
+        .post(`/api/v1/tickets/${freshTicketId}/attachments`)
+        .set("Cookie", cookie)
         .attach("file", Buffer.from("x"), { filename: `f${i}.png`, contentType: "image/png" });
       expect(uploadResponse.status).toBe(201);
     }
 
     const sixth = await request(app)
-      .post(`/api/tickets/${freshTicketId}/attachments`)
-      .set("x-dev-requester-id", String(requesterId))
+      .post(`/api/v1/tickets/${freshTicketId}/attachments`)
+      .set("Cookie", cookie)
       .attach("file", Buffer.from("x"), { filename: "sixth.png", contentType: "image/png" });
 
     expect(sixth.status).toBe(409);
@@ -97,16 +109,16 @@ describe("POST /api/tickets/:id/attachments", () => {
   it("never allows more than 5 active attachments under concurrent uploads (no TOCTOU race)", async () => {
     const categoryId = (await prisma.category.findFirst({ where: { isActive: true } }))!.id;
     const raceTicket = await request(app)
-      .post("/api/tickets")
-      .set("x-dev-requester-id", String(requesterId))
+      .post("/api/v1/tickets")
+      .set("Cookie", cookie)
       .send({ summary: "RACE-TEST ticket", description: "Used only to test concurrent uploads.", categoryId, requestedPriority: "LOW" });
     const raceTicketId = raceTicket.body.id;
 
     const responses = await Promise.all(
       Array.from({ length: 8 }, (_unused, i) =>
         request(app)
-          .post(`/api/tickets/${raceTicketId}/attachments`)
-          .set("x-dev-requester-id", String(requesterId))
+          .post(`/api/v1/tickets/${raceTicketId}/attachments`)
+          .set("Cookie", cookie)
           .attach("file", Buffer.from("x"), { filename: `race${i}.png`, contentType: "image/png" }),
       ),
     );
@@ -116,36 +128,36 @@ describe("POST /api/tickets/:id/attachments", () => {
   });
 
   it("returns 404 for a ticket owned by a different requester", async () => {
-    const otherRequester = await prisma.requester.findFirst({
-      where: { isActive: true, id: { not: requesterId } },
+    const otherRequester = await prisma.user.findFirst({
+      where: { role: "REQUESTER", isActive: true, id: { not: requesterId } },
     });
     const response = await request(app)
-      .post(`/api/tickets/${ticketId}/attachments`)
-      .set("x-dev-requester-id", String(otherRequester!.id))
+      .post(`/api/v1/tickets/${ticketId}/attachments`)
+      .set("Cookie", await cookieFor(otherRequester!.id))
       .attach("file", Buffer.from("x"), { filename: "sneaky.png", contentType: "image/png" });
 
     expect(response.status).toBe(404);
   });
 });
 
-describe("GET /api/tickets/:id/attachments", () => {
+describe("GET /api/v1/tickets/:id/attachments", () => {
   it("returns attachments uploaded to an owned ticket, including a soft-removed one with a null downloadUrl", async () => {
     const categoryId = (await prisma.category.findFirst({ where: { isActive: true } }))!.id;
     const listTicket = await request(app)
-      .post("/api/tickets")
-      .set("x-dev-requester-id", String(requesterId))
+      .post("/api/v1/tickets")
+      .set("Cookie", cookie)
       .send({ summary: "ATTACH-LIST-TEST ticket", description: "Used only to test attachment listing.", categoryId, requestedPriority: "LOW" });
     const listTicketId = listTicket.body.id;
 
     const uploaded = await request(app)
-      .post(`/api/tickets/${listTicketId}/attachments`)
-      .set("x-dev-requester-id", String(requesterId))
+      .post(`/api/v1/tickets/${listTicketId}/attachments`)
+      .set("Cookie", cookie)
       .attach("file", Buffer.from("x"), { filename: "keep.png", contentType: "image/png" });
     expect(uploaded.status).toBe(201);
 
     const removedUpload = await request(app)
-      .post(`/api/tickets/${listTicketId}/attachments`)
-      .set("x-dev-requester-id", String(requesterId))
+      .post(`/api/v1/tickets/${listTicketId}/attachments`)
+      .set("Cookie", cookie)
       .attach("file", Buffer.from("x"), { filename: "removed.png", contentType: "image/png" });
     expect(removedUpload.status).toBe(201);
 
@@ -159,8 +171,8 @@ describe("GET /api/tickets/:id/attachments", () => {
     });
 
     const response = await request(app)
-      .get(`/api/tickets/${listTicketId}/attachments`)
-      .set("x-dev-requester-id", String(requesterId));
+      .get(`/api/v1/tickets/${listTicketId}/attachments`)
+      .set("Cookie", cookie);
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(2);
@@ -178,12 +190,12 @@ describe("GET /api/tickets/:id/attachments", () => {
   });
 
   it("returns 404 for a ticket owned by a different requester", async () => {
-    const otherRequester = await prisma.requester.findFirst({
-      where: { isActive: true, id: { not: requesterId } },
+    const otherRequester = await prisma.user.findFirst({
+      where: { role: "REQUESTER", isActive: true, id: { not: requesterId } },
     });
     const response = await request(app)
-      .get(`/api/tickets/${ticketId}/attachments`)
-      .set("x-dev-requester-id", String(otherRequester!.id));
+      .get(`/api/v1/tickets/${ticketId}/attachments`)
+      .set("Cookie", await cookieFor(otherRequester!.id));
 
     expect(response.status).toBe(404);
   });

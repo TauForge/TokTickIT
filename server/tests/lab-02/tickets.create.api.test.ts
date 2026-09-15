@@ -4,20 +4,26 @@ import { app } from "../../src/app";
 import { prisma } from "../../src/prisma";
 
 let requesterId: number;
+let requesterEmail: string;
+let cookie: string[];
 let categoryId: number;
 let activeRelatedSystemId: number;
 let inactiveRelatedSystemId: number;
 let inactiveCategoryId: number;
 
 beforeAll(async () => {
-  const requester = await prisma.requester.findFirst({ where: { isActive: true } });
+  const requester = await prisma.user.findFirst({ where: { role: "REQUESTER", isActive: true } });
   const category = await prisma.category.findFirst({ where: { isActive: true } });
   const activeRelatedSystem = await prisma.relatedSystem.findFirst({ where: { isActive: true } });
   const inactiveRelatedSystem = await prisma.relatedSystem.findFirst({ where: { isActive: false } });
   requesterId = requester!.id;
+  requesterEmail = requester!.email;
   categoryId = category!.id;
   activeRelatedSystemId = activeRelatedSystem!.id;
   inactiveRelatedSystemId = inactiveRelatedSystem!.id;
+
+  const login = await request(app).post("/api/v1/auth/login").send({ email: requesterEmail, password: "DevPass123!" });
+  cookie = login.headers["set-cookie"];
 
   // No seeded Category row is inactive, and BR-06's isActive branch (as opposed to the
   // nonexistent-id branch) needs one to exercise — create a test-only inactive Category here.
@@ -31,11 +37,11 @@ afterAll(async () => {
   await prisma.category.delete({ where: { id: inactiveCategoryId } });
 });
 
-describe("POST /api/tickets", () => {
+describe("POST /api/v1/tickets", () => {
   it("creates a ticket with status New and itPriority copied from requestedPriority", async () => {
     const response = await request(app)
-      .post("/api/tickets")
-      .set("x-dev-requester-id", String(requesterId))
+      .post("/api/v1/tickets")
+      .set("Cookie", cookie)
       .send({
         summary: "Laptop battery drains quickly",
         description: "Battery drains within two hours even when mostly idle.",
@@ -51,13 +57,13 @@ describe("POST /api/tickets", () => {
   });
 
   it("ignores a client-supplied itPriority and requesterId", async () => {
-    const otherRequester = await prisma.requester.findFirst({
-      where: { isActive: true, id: { not: requesterId } },
+    const otherRequester = await prisma.user.findFirst({
+      where: { role: "REQUESTER", isActive: true, id: { not: requesterId } },
     });
 
     const response = await request(app)
-      .post("/api/tickets")
-      .set("x-dev-requester-id", String(requesterId))
+      .post("/api/v1/tickets")
+      .set("Cookie", cookie)
       .send({
         summary: "Printer offline again",
         description: "The 3rd floor printer shows offline in the driver list.",
@@ -74,8 +80,8 @@ describe("POST /api/tickets", () => {
 
   it("returns 422 with field errors for a missing summary", async () => {
     const response = await request(app)
-      .post("/api/tickets")
-      .set("x-dev-requester-id", String(requesterId))
+      .post("/api/v1/tickets")
+      .set("Cookie", cookie)
       .send({ description: "Valid description text here.", categoryId, requestedPriority: "LOW" });
 
     expect(response.status).toBe(422);
@@ -84,8 +90,8 @@ describe("POST /api/tickets", () => {
 
   it("returns 422 for a non-existent categoryId instead of a raw DB error", async () => {
     const response = await request(app)
-      .post("/api/tickets")
-      .set("x-dev-requester-id", String(requesterId))
+      .post("/api/v1/tickets")
+      .set("Cookie", cookie)
       .send({
         summary: "Ticket with a bad category",
         description: "Category id below does not exist in the seeded data.",
@@ -99,8 +105,8 @@ describe("POST /api/tickets", () => {
 
   it("returns 422 for a deactivated categoryId (isActive branch, not just the not-found branch)", async () => {
     const response = await request(app)
-      .post("/api/tickets")
-      .set("x-dev-requester-id", String(requesterId))
+      .post("/api/v1/tickets")
+      .set("Cookie", cookie)
       .send({
         summary: "Ticket with a deactivated category",
         description: "This category row exists but has isActive: false.",
@@ -116,8 +122,8 @@ describe("POST /api/tickets", () => {
     const relatedSystem = await prisma.relatedSystem.findUnique({ where: { id: activeRelatedSystemId } });
 
     const response = await request(app)
-      .post("/api/tickets")
-      .set("x-dev-requester-id", String(requesterId))
+      .post("/api/v1/tickets")
+      .set("Cookie", cookie)
       .send({
         summary: "VPN drops every few minutes",
         description: "Connection to the VPN keeps dropping while working remotely.",
@@ -133,8 +139,8 @@ describe("POST /api/tickets", () => {
 
   it("returns 422 for a non-existent relatedSystemId instead of a raw DB error", async () => {
     const response = await request(app)
-      .post("/api/tickets")
-      .set("x-dev-requester-id", String(requesterId))
+      .post("/api/v1/tickets")
+      .set("Cookie", cookie)
       .send({
         summary: "Ticket with a bad related system",
         description: "Related system id below does not exist in the seeded data.",
@@ -149,8 +155,8 @@ describe("POST /api/tickets", () => {
 
   it("returns 422 for a deactivated relatedSystemId (isActive branch, not just the not-found branch)", async () => {
     const response = await request(app)
-      .post("/api/tickets")
-      .set("x-dev-requester-id", String(requesterId))
+      .post("/api/v1/tickets")
+      .set("Cookie", cookie)
       .send({
         summary: "Ticket with a deactivated related system",
         description: "This related system row exists but has isActive: false.",
@@ -163,9 +169,9 @@ describe("POST /api/tickets", () => {
     expect(response.body.error.fieldErrors.map((e: { field: string }) => e.field)).toContain("relatedSystemId");
   });
 
-  it("returns 401 without an x-dev-requester-id header", async () => {
+  it("returns 401 without a session cookie", async () => {
     const response = await request(app)
-      .post("/api/tickets")
+      .post("/api/v1/tickets")
       .send({ summary: "abcde", description: "0123456789", categoryId, requestedPriority: "LOW" });
 
     expect(response.status).toBe(401);
@@ -181,7 +187,7 @@ describe("POST /api/tickets", () => {
 
     const responses = await Promise.all(
       Array.from({ length: 5 }, () =>
-        request(app).post("/api/tickets").set("x-dev-requester-id", String(requesterId)).send(payload),
+        request(app).post("/api/v1/tickets").set("Cookie", cookie).send(payload),
       ),
     );
 

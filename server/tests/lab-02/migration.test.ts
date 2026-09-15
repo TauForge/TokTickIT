@@ -32,8 +32,8 @@ describe("Lab 2 migration and seed", () => {
   });
 
   it("seeds at least four active dev requesters and at least one inactive", async () => {
-    const active = await prisma.requester.count({ where: { isActive: true } });
-    const inactive = await prisma.requester.count({ where: { isActive: false } });
+    const active = await prisma.user.count({ where: { role: "REQUESTER", isActive: true } });
+    const inactive = await prisma.user.count({ where: { role: "REQUESTER", isActive: false } });
 
     expect(active).toBeGreaterThanOrEqual(4);
     expect(inactive).toBeGreaterThanOrEqual(1);
