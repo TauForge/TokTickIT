@@ -8,6 +8,7 @@ import { Login } from "./screens/Login";
 import { ChangePassword } from "./screens/ChangePassword";
 import { CreateTicket } from "./screens/CreateTicket";
 import { MyTickets } from "./screens/MyTickets";
+import { StaffTicketQueue } from "./screens/StaffTicketQueue";
 import { TicketDetail } from "./screens/TicketDetail";
 
 function TicketDetailRoute() {
@@ -78,6 +79,7 @@ function Shell() {
         )}
         {user.role === "IT_STAFF" && (
           <>
+            <Route path="/staff/tickets" element={<StaffTicketQueue />} />
             <Route path="/tickets/new" element={<CreateTicketRoute />} />
             <Route path="/tickets/:id" element={<TicketDetailRoute />} />
           </>
