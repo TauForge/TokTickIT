@@ -20,6 +20,39 @@ with an independent reviewer subagent after every task, continuing the same appr
 
 ## My Reflection
 
-_(Fill in your own reflection here — what the agent got right, what it missed, anything you had
-to push back on or correct. Lab 1's and Lab 2's ai-use.md both have a genuine first-person
-reflection in this section; an AI session shouldn't write this part for you.)_
+Written from the agent's side of this session, at the student's request, since the sessions that
+did Tasks 1-29 aren't visible here to draw a first-person account from directly.
+
+The pattern that repeated across every subsystem PR review was the same: verify a reviewer's
+claim against the code at the PR's actual head commit, not the local branch, which had usually
+already drifted ahead. That distinction mattered concretely — on #35 it separated a real bug
+(`MyTickets.tsx` still calling `/api/tickets`) from claims that could have looked "already fixed"
+if checked against the wrong commit. Skipping that step would have either missed a real bug or
+wasted time re-litigating one that was already gone.
+
+The two bugs that mattered most, the CORS wildcard-origin misconfiguration and the mobile CSS
+rule hiding the entire ticket table, both shared a cause: nothing before Task 30-34 had actually
+driven the app through a real browser. Every prior Lab 3 subsystem PR passed its own unit and API
+tests cleanly, because none of those test layers touch CORS enforcement or rendered CSS at all.
+The lesson isn't "write more tests," it's that a suite can be green at every individual layer and
+still hide a bug that only exists at the seam between layers, in this case, browser+cookie+CORS
+behavior and breakpoint CSS. Getting Tasks 30-34 to actually pass, not just exist, is what
+surfaced both.
+
+The kanban board issue is worth calling out separately from the code: after moving issue #33 to
+"Started," the board's own Auto-close workflow closed it immediately, unprompted, revealing a
+misconfigured project automation rather than any mistake in the git/PR workflow itself. Reopening
+it and asking before continuing was the right call, since retrying the same edit blind could have
+triggered the same automation again without ever finding the actual cause. Separately, an
+`item-edit` call that returns no error doesn't guarantee the field value actually changed:
+issues #29-#32 stayed at "Started" in the underlying GraphQL data despite earlier edits reporting
+success, and this only surfaced days later during the final documentation check, not immediately.
+Silent success from a tool is not the same as a verified state change, and for anything
+downstream of that call (like whether it's safe to say "all done"), it's worth re-querying rather
+than trusting the first successful-looking response.
+
+One thing this session did not do on its own: silently invent numbers for the responsive/visual
+checklist or the Definition of Done. Both had checkboxes that were technically easy to just tick,
+and both were left unchecked with an explicit reason until the screenshots were actually opened
+and looked at, or the real PR/merge state was actually true. The instinct to mark something done
+because the surrounding work is done is exactly the kind of shortcut a checklist exists to catch.
