@@ -5,6 +5,7 @@ import { prisma } from "./prisma";
 import { categoriesRouter } from "./routes/categories";
 import { relatedSystemsRouter } from "./routes/relatedSystems";
 import { ticketsRouter } from "./routes/tickets";
+import { commentsRouter } from "./routes/comments";
 import { attachmentsRouter } from "./routes/attachments";
 import { attachmentActionsRouter } from "./routes/attachmentActions";
 import { authRouter } from "./routes/auth";
@@ -34,6 +35,7 @@ app.get("/api/health", (_request, response) => {
 app.use("/api/categories", categoriesRouter);
 app.use("/api/related-systems", relatedSystemsRouter);
 app.use("/api/v1/tickets/:ticketId/attachments", attachmentsRouter);
+app.use("/api/v1/tickets/:ticketId/comments", commentsRouter);
 app.use("/api/v1/attachments", attachmentActionsRouter);
 app.use("/api/v1/tickets", ticketsRouter);
 app.use("/api/v1/auth", authRouter);
