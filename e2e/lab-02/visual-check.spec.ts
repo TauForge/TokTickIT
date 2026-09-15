@@ -6,10 +6,16 @@ const VIEWPORTS = {
   mobile: { width: 390, height: 844 },
 };
 
-async function selectFirstRequesterAndCreateTicket(page: import("@playwright/test").Page): Promise<string> {
+async function loginAsRequester(page: import("@playwright/test").Page): Promise<void> {
   await page.goto("/");
-  await page.getByLabel(/development requester/i).selectOption({ index: 1 });
-  await page.getByRole("button", { name: /continue/i }).click();
+  await page.getByLabel(/email/i).fill("jennifer.anderson@toktickit.dev");
+  await page.getByLabel(/password/i).fill("DevPass123!");
+  await page.getByRole("button", { name: /sign in/i }).click();
+  await page.getByRole("heading", { name: /my tickets/i }).waitFor();
+}
+
+async function selectFirstRequesterAndCreateTicket(page: import("@playwright/test").Page): Promise<string> {
+  await loginAsRequester(page);
   await page.goto("/tickets/new");
   await page.getByLabel(/^summary/i).fill("Visual-check seed ticket");
   await page.getByLabel(/description/i).fill("Created only so Ticket Detail has something to screenshot.");
@@ -32,9 +38,7 @@ function assertNoHorizontalOverflow(page: import("@playwright/test").Page) {
 for (const [name, size] of Object.entries(VIEWPORTS)) {
   test(`create ticket screen at ${name}`, async ({ page }) => {
     await page.setViewportSize(size);
-    await page.goto("/");
-    await page.getByLabel(/development requester/i).selectOption({ index: 1 });
-    await page.getByRole("button", { name: /continue/i }).click();
+    await loginAsRequester(page);
     await page.goto("/tickets/new");
     await assertNoHorizontalOverflow(page);
     await page.screenshot({ path: `../artifacts/lab-02/screenshots/create-ticket/${name}.png`, fullPage: true });
@@ -42,9 +46,7 @@ for (const [name, size] of Object.entries(VIEWPORTS)) {
 
   test(`my tickets screen at ${name}`, async ({ page }) => {
     await page.setViewportSize(size);
-    await page.goto("/");
-    await page.getByLabel(/development requester/i).selectOption({ index: 1 });
-    await page.getByRole("button", { name: /continue/i }).click();
+    await loginAsRequester(page);
     await page.goto("/tickets");
     await assertNoHorizontalOverflow(page);
     await page.screenshot({ path: `../artifacts/lab-02/screenshots/my-tickets/${name}.png`, fullPage: true });

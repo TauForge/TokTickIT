@@ -157,7 +157,7 @@ button:not([type="submit"]):not(.zg-primary-button) {
 
 @media (max-width: 767px) {
   .zg-card { margin: 8px; padding: 12px 16px; }
-  .zg-table, .zg-table thead { display: none; }
+  .zg-table thead { display: none; }
   .zg-table tbody tr {
     display: block;
     border: 1px solid var(--zg-border);

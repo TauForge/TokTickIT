@@ -70,6 +70,10 @@ async function main() {
         role: user.role,
         isActive: user.isActive,
         mustChangePassword: user.mustChangePassword,
+        // Reset the password too, not just the flags — otherwise re-seeding after an E2E
+        // run that changed a fixture's password (e.g. onboarding@toktickit.local's
+        // mandatory first-login flow) silently leaves the seeded credentials stale.
+        passwordHash,
       },
       create: { ...user, passwordHash },
     });
