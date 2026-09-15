@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { AuthProvider } from "../../src/api/authContext";
 import { CreateTicket } from "../../src/screens/CreateTicket";
+import { StatusBadge } from "../../src/components/badges";
 import { mockFetchByUrl, meResponse } from "../lab-03/testHelpers";
 
 describe("Zen Green style contract", () => {
@@ -21,5 +22,14 @@ describe("Zen Green style contract", () => {
     expect(summaryLabel?.textContent).toContain("*");
     expect(document.querySelector("form.zg-card")).not.toBeNull();
     expect(screen.getByRole("button", { name: /submit/i })).not.toBeDisabled();
+  });
+
+  it("Lab 3: every non-NEW status renders its own label, never the raw enum value", () => {
+    const statuses = ["OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"];
+    statuses.forEach((status) => {
+      const { container, unmount } = render(<StatusBadge value={status} />);
+      expect(container.textContent).not.toBe(status);
+      unmount();
+    });
   });
 });
