@@ -1,12 +1,14 @@
-import { Router } from "express";
+import { Router, RequestHandler } from "express";
 import { prisma } from "../prisma";
-import { resolveDevRequester } from "../middleware/devRequester";
+import { requireAuth, requireRole, blockIfPasswordChangeRequired } from "../middleware/auth";
 import { validateCreateTicketRequest } from "../validators/createTicketRequest";
 import { parseTicketQuery } from "../validators/ticketQuery";
 import { generateTicketNumber } from "../services/ticketNumber";
 import { HttpError } from "../middleware/errorEnvelope";
 
 export const ticketsRouter = Router();
+
+const requesterGate: RequestHandler[] = [requireAuth, blockIfPasswordChangeRequired, requireRole("REQUESTER")];
 
 function toTicketDto(ticket: {
   id: string;
@@ -42,7 +44,7 @@ function toTicketDto(ticket: {
   };
 }
 
-ticketsRouter.post("/", resolveDevRequester, async (req, res, next) => {
+ticketsRouter.post("/", ...requesterGate, async (req, res, next) => {
   try {
     const validation = validateCreateTicketRequest(req.body);
     if (!validation.ok) {
@@ -50,7 +52,7 @@ ticketsRouter.post("/", resolveDevRequester, async (req, res, next) => {
     }
 
     const input = validation.value;
-    const requesterId = req.requester!.id;
+    const requesterId = req.user!.id;
     const year = new Date().getFullYear();
 
     // BR-06: Category/RelatedSystem must be active to be selectable at creation time.
@@ -94,10 +96,10 @@ ticketsRouter.post("/", resolveDevRequester, async (req, res, next) => {
   }
 });
 
-ticketsRouter.get("/", resolveDevRequester, async (req, res, next) => {
+ticketsRouter.get("/", ...requesterGate, async (req, res, next) => {
   try {
     const query = parseTicketQuery(req.query as Record<string, unknown>);
-    const requesterId = req.requester!.id;
+    const requesterId = req.user!.id;
 
     const where = {
       requesterId,
@@ -141,16 +143,16 @@ ticketsRouter.get("/", resolveDevRequester, async (req, res, next) => {
   }
 });
 
-ticketsRouter.get("/:id", resolveDevRequester, async (req, res, next) => {
+ticketsRouter.get("/:id", ...requesterGate, async (req, res, next) => {
   try {
     const ticket = await prisma.ticket.findUnique({
-      where: { id: req.params.id },
+      where: { id: String(req.params.id) },
       include: { category: true, relatedSystem: true },
     });
 
     // BR-18/AC-03/FR-20: a ticket owned by another requester must look identical to a
     // nonexistent ticket (404, not 403) so requesters can't probe which ticket ids exist.
-    if (!ticket || ticket.requesterId !== req.requester!.id) {
+    if (!ticket || ticket.requesterId !== req.user!.id) {
       throw new HttpError(404, "NOT_FOUND", "Ticket not found");
     }
 
@@ -159,3 +161,33 @@ ticketsRouter.get("/:id", resolveDevRequester, async (req, res, next) => {
     next(error);
   }
 });
+
+const NOT_RESOLVABLE_BY_REQUESTER = ["RESOLVED", "CLOSED", "CANCELLED"];
+
+ticketsRouter.patch("/:id/resolved-indication", ...requesterGate, async (req, res, next) => {
+  try {
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: String(req.params.id) },
+      include: { category: true, relatedSystem: true },
+    });
+    if (!ticket || ticket.requesterId !== req.user!.id) {
+      throw new HttpError(404, "NOT_FOUND", "Ticket not found");
+    }
+    if (NOT_RESOLVABLE_BY_REQUESTER.includes(ticket.status)) {
+      throw new HttpError(422, "VALIDATION_FAILED", "This ticket cannot be marked resolved by the requester right now.", [
+        { field: "status", message: "Ticket is already resolved, closed, or cancelled." },
+      ]);
+    }
+
+    const updated = await prisma.ticket.update({
+      where: { id: ticket.id },
+      data: { resolvedIndicatedByRequester: true },
+      include: { category: true, relatedSystem: true },
+    });
+    res.status(200).json({ ...toTicketDto(updated), resolvedIndicatedByRequester: updated.resolvedIndicatedByRequester });
+  } catch (error) {
+    next(error);
+  }
+});
+
+export { toTicketDto, requesterGate };

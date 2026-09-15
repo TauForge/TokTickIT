@@ -30,7 +30,7 @@ interface Category {
 
 const PRIORITIES = ["LOW", "MEDIUM", "HIGH"];
 
-export function MyTickets({ requesterId }: { requesterId: number }) {
+export function MyTickets() {
   const [data, setData] = useState<TicketListResponse | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState("");
@@ -44,10 +44,10 @@ export function MyTickets({ requesterId }: { requesterId: number }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    apiGet<Category[]>("/api/categories", requesterId)
+    apiGet<Category[]>("/api/categories")
       .then((response) => setCategories(Array.isArray(response) ? response : []))
       .catch(() => setCategories([]));
-  }, [requesterId]);
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams({ page: String(page), sort, order });
@@ -57,13 +57,13 @@ export function MyTickets({ requesterId }: { requesterId: number }) {
     if (itPriority) params.set("itPriority", itPriority);
     if (status) params.set("status", status);
 
-    apiGet<TicketListResponse>(`/api/tickets?${params.toString()}`, requesterId)
+    apiGet<TicketListResponse>(`/api/v1/tickets?${params.toString()}`)
       .then((response) => {
         setData(response);
         setError(null);
       })
       .catch(() => setError("Unable to load your tickets right now. Please try again."));
-  }, [requesterId, search, categoryId, requestedPriority, itPriority, status, sort, order, page]);
+  }, [search, categoryId, requestedPriority, itPriority, status, sort, order, page]);
 
   function clearFilters() {
     setSearch("");

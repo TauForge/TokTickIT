@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { apiGet, apiPost } from "../api/apiClient";
+import { useAuth } from "../api/authContext";
 
 interface Category {
   id: number;
@@ -45,14 +46,11 @@ function validate(form: CreateTicketForm): FieldError[] {
 }
 
 export function CreateTicket({
-  requesterId,
-  requesterName,
   onCreated,
 }: {
-  requesterId: number;
-  requesterName: string;
   onCreated: (ticket: { id: string; ticketNumber: string }) => void;
 }) {
+  const { user } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [relatedSystems, setRelatedSystems] = useState<RelatedSystem[]>([]);
   const [summary, setSummary] = useState("");
@@ -65,9 +63,9 @@ export function CreateTicket({
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
-    apiGet<Category[]>("/api/categories", requesterId).then(setCategories);
-    apiGet<RelatedSystem[]>("/api/related-systems", requesterId).then(setRelatedSystems);
-  }, [requesterId]);
+    apiGet<Category[]>("/api/categories").then(setCategories);
+    apiGet<RelatedSystem[]>("/api/related-systems").then(setRelatedSystems);
+  }, []);
 
   function errorFor(field: string) {
     return fieldErrors.find((e) => e.field === field)?.message;
@@ -90,7 +88,7 @@ export function CreateTicket({
     setSubmitting(true);
     try {
       const ticket = await apiPost<{ id: string; ticketNumber: string }>(
-        "/api/tickets",
+        "/api/v1/tickets",
         {
           summary,
           description,
@@ -98,7 +96,6 @@ export function CreateTicket({
           relatedSystemId: relatedSystemId ? Number(relatedSystemId) : undefined,
           requestedPriority,
         },
-        requesterId,
       );
       onCreated(ticket);
     } catch (error) {
@@ -129,7 +126,7 @@ export function CreateTicket({
           <form className="zg-card" onSubmit={handleSubmit} noValidate>
             <div className="mb-3">
               <span className="form-label d-block">Requester</span>
-              <p className="form-control-plaintext">{requesterName}</p>
+              <p className="form-control-plaintext">{user?.displayName ?? ""}</p>
             </div>
 
             <div className="mb-3">

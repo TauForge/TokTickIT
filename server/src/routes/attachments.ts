@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import multer, { MulterError } from "multer";
 import { prisma } from "../prisma";
-import { resolveDevRequester } from "../middleware/devRequester";
+import { requireAuth, requireRole, blockIfPasswordChangeRequired } from "../middleware/auth";
 import { HttpError } from "../middleware/errorEnvelope";
 import {
   isAllowedAttachmentFile,
@@ -19,6 +19,8 @@ import {
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } });
 
 export const attachmentsRouter = Router({ mergeParams: true });
+
+const requesterGate = [requireAuth, blockIfPasswordChangeRequired, requireRole("REQUESTER")];
 
 function toAttachmentDto(a: {
   id: string;
@@ -67,9 +69,9 @@ function handleUpload(req: Request, res: Response, next: NextFunction) {
   });
 }
 
-attachmentsRouter.post("/", resolveDevRequester, handleUpload, async (req, res, next) => {
+attachmentsRouter.post("/", ...requesterGate, handleUpload, async (req, res, next) => {
   try {
-    const ticket = await loadOwnedTicket(String(req.params.ticketId), req.requester!.id);
+    const ticket = await loadOwnedTicket(String(req.params.ticketId), req.user!.id);
     const file = req.file;
 
     if (!file) {
@@ -103,7 +105,7 @@ attachmentsRouter.post("/", resolveDevRequester, handleUpload, async (req, res, 
       return tx.attachment.create({
         data: {
           ticketId: ticket.id,
-          uploadedById: req.requester!.id,
+          uploadedById: req.user!.id,
           filename: file.originalname,
           storedName,
           mimeType: file.mimetype,
@@ -118,10 +120,10 @@ attachmentsRouter.post("/", resolveDevRequester, handleUpload, async (req, res, 
   }
 });
 
-attachmentsRouter.get("/", resolveDevRequester, async (req, res, next) => {
+attachmentsRouter.get("/", ...requesterGate, async (req, res, next) => {
   try {
     const ticketId = (req.params as Record<string, string>).ticketId;
-    const ticket = await loadOwnedTicket(String(ticketId), req.requester!.id);
+    const ticket = await loadOwnedTicket(String(ticketId), req.user!.id);
     const attachments = await prisma.attachment.findMany({
       where: { ticketId: ticket.id },
       orderBy: { createdAt: "asc" },

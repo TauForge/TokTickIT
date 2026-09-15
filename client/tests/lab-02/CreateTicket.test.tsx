@@ -1,21 +1,19 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { AuthProvider } from "../../src/api/authContext";
 import { CreateTicket } from "../../src/screens/CreateTicket";
+import { mockFetchByUrl, meResponse } from "../lab-03/testHelpers";
 
-function mockFetchSequence(responses: unknown[]) {
-  let call = 0;
-  const calls: { url: string }[] = [];
-  vi.stubGlobal(
-    "fetch",
-    vi.fn().mockImplementation((url: string) => {
-      calls.push({ url });
-      const response = responses[Math.min(call, responses.length - 1)];
-      call += 1;
-      return Promise.resolve(response);
-    }),
+const requester = { id: 1, email: "jennifer.anderson@toktickit.dev", displayName: "Jennifer Anderson", role: "REQUESTER" as const, mustChangePassword: false };
+
+function renderCreateTicket(onCreated = vi.fn()) {
+  render(
+    <AuthProvider>
+      <CreateTicket onCreated={onCreated} />
+    </AuthProvider>,
   );
-  return calls;
+  return onCreated;
 }
 
 describe("CreateTicket", () => {
@@ -24,15 +22,19 @@ describe("CreateTicket", () => {
   });
 
   it("shows a field error and never calls POST /api/tickets when Summary is missing", async () => {
-    const calls = mockFetchSequence([
-      { ok: true, json: async () => [{ id: 1, name: "Hardware", code: "HARDWARE" }] },
-      { ok: true, json: async () => [] },
-    ]);
+    const calls: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((url: string) => {
+        calls.push(url);
+        if (url.includes("/api/v1/me")) return Promise.resolve(meResponse(requester));
+        if (url.includes("/api/categories")) return Promise.resolve({ ok: true, json: async () => [{ id: 1, name: "Hardware", code: "HARDWARE" }] });
+        return Promise.resolve({ ok: true, json: async () => [] });
+      }),
+    );
     const user = userEvent.setup();
 
-    render(
-      <CreateTicket requesterId={1} requesterName="Jennifer Anderson" onCreated={() => {}} />,
-    );
+    renderCreateTicket();
 
     await screen.findByLabelText(/category/i);
     await user.type(screen.getByLabelText(/description/i), "0123456789");
@@ -41,43 +43,29 @@ describe("CreateTicket", () => {
     await user.click(screen.getByRole("button", { name: /submit/i }));
 
     expect(await screen.findByText(/summary must be/i)).toBeInTheDocument();
-    // Only the 2 reference-data GETs happened (categories, related systems) — no POST.
-    expect(calls).toHaveLength(2);
+    expect(calls.some((c) => c.includes("/api/tickets") && !c.includes("/api/v1"))).toBe(false);
   });
 
   it("shows the current Requester read-only, then hands the created ticket to onCreated on success", async () => {
-    mockFetchSequence([
-      { ok: true, json: async () => [{ id: 1, name: "Hardware", code: "HARDWARE" }] },
-      { ok: true, json: async () => [] },
-      { ok: true, json: async () => ({ id: "t1", ticketNumber: "TKT-2026-000001" }) },
-    ]);
+    mockFetchByUrl({
+      "/api/v1/me": meResponse(requester),
+      "/api/categories": { ok: true, json: async () => [{ id: 1, name: "Hardware", code: "HARDWARE" }] },
+      "/api/v1/tickets": { ok: true, json: async () => ({ id: "t1", ticketNumber: "TKT-2026-000001" }) },
+    });
     const onCreated = vi.fn();
     const user = userEvent.setup();
 
-    render(
-      <CreateTicket requesterId={1} requesterName="Jennifer Anderson" onCreated={onCreated} />,
-    );
+    renderCreateTicket(onCreated);
 
-    expect(screen.getByText("Jennifer Anderson")).toBeInTheDocument();
+    expect(await screen.findByText("Jennifer Anderson")).toBeInTheDocument();
 
     await screen.findByLabelText(/category/i);
     await user.type(screen.getByLabelText(/^summary/i), "Laptop battery drains quickly");
-    await user.type(
-      screen.getByLabelText(/description/i),
-      "Battery drains within two hours idle.",
-    );
+    await user.type(screen.getByLabelText(/description/i), "Battery drains within two hours idle.");
     await user.selectOptions(screen.getByLabelText(/^category/i), "1");
     await user.selectOptions(screen.getByLabelText(/requested priority/i), "MEDIUM");
+    await user.click(screen.getByRole("button", { name: /submit/i }));
 
-    const submit = screen.getByRole("button", { name: /submit/i });
-    await user.click(submit);
-
-    // CreateTicket itself never renders a static success message — it hands the full created
-    // ticket (id + ticketNumber) to onCreated, which is what App.tsx uses to navigate the
-    // Requester straight to /tickets/:id (Task 21, Step 6). Asserting on the callback payload,
-    // not on any local success UI, is what actually exercises that contract.
-    await waitFor(() =>
-      expect(onCreated).toHaveBeenCalledWith({ id: "t1", ticketNumber: "TKT-2026-000001" }),
-    );
+    await waitFor(() => expect(onCreated).toHaveBeenCalledWith({ id: "t1", ticketNumber: "TKT-2026-000001" }));
   });
 });

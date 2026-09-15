@@ -118,3 +118,40 @@ is required first:
 cd e2e
 npx playwright test
 ```
+
+## Lab 3: Authentication, Staff Workflow, and Admin User Management
+
+Lab 3 replaces the Lab 2 Development Requester selector with real email/password login,
+session cookies, mandatory first-login password changes, an IT Staff ticket queue and
+detail workflow (owner claim/reassign, priority, status transitions, Public Comments,
+Internal Notes), and Administrator user management. See `docs/lab-03/specification.md`
+for the full requirements and `docs/lab-03/tests.md` for the test plan and results.
+
+### Lab 3 seeded accounts (local dev only)
+
+Every seeded account below shares the password `DevPass123!` — a local-dev-only fixture
+password, never a real credential — except `onboarding@toktickit.local`, which also starts
+on `DevPass123!` but is forced through Change Password at its very first login
+(`mustChangePassword=true`).
+
+The 5 Lab 2 Requester accounts (materialized by
+`server/prisma/migrations/20260915090000_lab3_auth_and_staff`, same shared password):
+
+| Email | Role |
+| --- | --- |
+| jennifer.anderson@toktickit.dev | REQUESTER |
+| michael.brown@toktickit.dev | REQUESTER |
+| sarah.johnson@toktickit.dev | REQUESTER |
+| david.lee@toktickit.dev | REQUESTER |
+| retired.alumnus@toktickit.dev | REQUESTER (inactive — used to verify the "account cannot sign in right now" state) |
+
+The Lab 3 fixtures (`server/prisma/seed.ts`):
+
+| Email | Role |
+| --- | --- |
+| amy.tran@toktickit.dev | IT_STAFF |
+| carlos.mendez@toktickit.dev | IT_STAFF |
+| priya.natarajan@toktickit.dev | IT_STAFF |
+| former.tech@toktickit.dev | IT_STAFF (inactive) |
+| onboarding@toktickit.local | IT_STAFF (mandatory first-login password change) |
+| admin@toktickit.dev | ADMINISTRATOR |

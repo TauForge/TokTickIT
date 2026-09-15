@@ -2,13 +2,24 @@ import { describe, it, expect, beforeAll } from "vitest";
 import request from "supertest";
 import { app } from "../../src/app";
 import { prisma } from "../../src/prisma";
+import { hashPassword } from "../../src/services/password";
 
 let requesterAId: number;
 let requesterBId: number;
 let categoryId: number;
 
+const cookieCache = new Map<number, string[]>();
+async function cookieFor(userId: number): Promise<string[]> {
+  if (!cookieCache.has(userId)) {
+    const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    const login = await request(app).post("/api/v1/auth/login").send({ email: user.email, password: "DevPass123!" });
+    cookieCache.set(userId, login.headers["set-cookie"]);
+  }
+  return cookieCache.get(userId)!;
+}
+
 beforeAll(async () => {
-  const [a, b] = await prisma.requester.findMany({ where: { isActive: true }, take: 2 });
+  const [a, b] = await prisma.user.findMany({ where: { role: "REQUESTER", isActive: true }, take: 2 });
   requesterAId = a.id;
   requesterBId = b.id;
   categoryId = (await prisma.category.findFirst({ where: { isActive: true } }))!.id;
@@ -16,8 +27,8 @@ beforeAll(async () => {
   await prisma.ticket.deleteMany({ where: { summary: { startsWith: "LIST-TEST" } } });
   for (let i = 0; i < 12; i += 1) {
     await request(app)
-      .post("/api/tickets")
-      .set("x-dev-requester-id", String(requesterAId))
+      .post("/api/v1/tickets")
+      .set("Cookie", await cookieFor(requesterAId))
       .send({
         summary: `LIST-TEST ${i}`,
         description: "Seed ticket for the my-tickets list test.",
@@ -26,8 +37,8 @@ beforeAll(async () => {
       });
   }
   await request(app)
-    .post("/api/tickets")
-    .set("x-dev-requester-id", String(requesterBId))
+    .post("/api/v1/tickets")
+    .set("Cookie", await cookieFor(requesterBId))
     .send({
       summary: "LIST-TEST other requester",
       description: "Belongs to requester B only.",
@@ -36,9 +47,9 @@ beforeAll(async () => {
     });
 });
 
-describe("GET /api/tickets", () => {
+describe("GET /api/v1/tickets", () => {
   it("returns only the requesting requester's tickets, paginated at the default page size", async () => {
-    const response = await request(app).get("/api/tickets").set("x-dev-requester-id", String(requesterAId));
+    const response = await request(app).get("/api/v1/tickets").set("Cookie", await cookieFor(requesterAId));
 
     expect(response.status).toBe(200);
     expect(response.body.items.length).toBeLessThanOrEqual(10);
@@ -51,8 +62,8 @@ describe("GET /api/tickets", () => {
 
   it("falls back to defaults for an invalid pageSize", async () => {
     const response = await request(app)
-      .get("/api/tickets?pageSize=9999")
-      .set("x-dev-requester-id", String(requesterAId));
+      .get("/api/v1/tickets?pageSize=9999")
+      .set("Cookie", await cookieFor(requesterAId));
 
     expect(response.status).toBe(200);
     expect(response.body.pageSize).toBe(10);
@@ -60,18 +71,24 @@ describe("GET /api/tickets", () => {
 
   it("filters by search matching the summary", async () => {
     const response = await request(app)
-      .get("/api/tickets?search=LIST-TEST 3")
-      .set("x-dev-requester-id", String(requesterAId));
+      .get("/api/v1/tickets?search=LIST-TEST 3")
+      .set("Cookie", await cookieFor(requesterAId));
 
     expect(response.status).toBe(200);
     expect(response.body.items.some((t: { summary: string }) => t.summary.includes("LIST-TEST 3"))).toBe(true);
   });
 
   it("returns an empty items array with totalItems 0 for a requester with no tickets", async () => {
-    const empty = await prisma.requester.create({
-      data: { name: "Empty Test", email: `empty-${Date.now()}@toktickit.dev`, isActive: true },
+    const empty = await prisma.user.create({
+      data: {
+        email: `empty-${Date.now()}@toktickit.dev`,
+        displayName: "Empty Test",
+        passwordHash: await hashPassword("DevPass123!"),
+        role: "REQUESTER",
+        isActive: true,
+      },
     });
-    const response = await request(app).get("/api/tickets").set("x-dev-requester-id", String(empty.id));
+    const response = await request(app).get("/api/v1/tickets").set("Cookie", await cookieFor(empty.id));
 
     expect(response.status).toBe(200);
     expect(response.body.items).toEqual([]);

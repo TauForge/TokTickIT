@@ -23,6 +23,28 @@
   --zg-priority-high-text: var(--zg-error);
   --zg-status-new: var(--zg-pale);
   --zg-status-new-text: var(--zg-primary);
+
+  --zg-status-open: #EAF6EF;
+  --zg-status-open-text: var(--zg-primary);
+  --zg-status-in-progress: #E3EEFB;
+  --zg-status-in-progress-text: #1B4B91;
+  --zg-status-waiting-for-requester: #FCEFD9;
+  --zg-status-waiting-for-requester-text: var(--zg-warning);
+  --zg-status-resolved: var(--zg-pale);
+  --zg-status-resolved-text: var(--zg-primary);
+  --zg-status-closed: #E7E7E7;
+  --zg-status-closed-text: #4A4A4A;
+  --zg-status-reopened: #FCEFD9;
+  --zg-status-reopened-text: #8A5A00;
+  --zg-status-cancelled: #FBEAE9;
+  --zg-status-cancelled-text: var(--zg-error);
+
+  --zg-role-requester: #E7E7E7;
+  --zg-role-requester-text: #4A4A4A;
+  --zg-role-it-staff: #E3EEFB;
+  --zg-role-it-staff-text: #1B4B91;
+  --zg-role-administrator: var(--zg-pale);
+  --zg-role-administrator-text: var(--zg-primary);
 }
 
 body { background: var(--zg-bg); color: var(--zg-text); }
@@ -113,10 +135,29 @@ button:not([type="submit"]):not(.zg-primary-button) {
 .zg-priority-badge-medium { background: var(--zg-priority-medium); color: var(--zg-priority-medium-text); }
 .zg-priority-badge-high { background: var(--zg-priority-high); color: var(--zg-priority-high-text); }
 .zg-status-badge-new { background: var(--zg-status-new); color: var(--zg-status-new-text); }
+.zg-status-badge-open { background: var(--zg-status-open); color: var(--zg-status-open-text); }
+.zg-status-badge-in-progress { background: var(--zg-status-in-progress); color: var(--zg-status-in-progress-text); }
+.zg-status-badge-waiting-for-requester { background: var(--zg-status-waiting-for-requester); color: var(--zg-status-waiting-for-requester-text); }
+.zg-status-badge-resolved { background: var(--zg-status-resolved); color: var(--zg-status-resolved-text); }
+.zg-status-badge-closed { background: var(--zg-status-closed); color: var(--zg-status-closed-text); }
+.zg-status-badge-reopened { background: var(--zg-status-reopened); color: var(--zg-status-reopened-text); }
+.zg-status-badge-cancelled { background: var(--zg-status-cancelled); color: var(--zg-status-cancelled-text); }
+
+.zg-role-badge-requester { background: var(--zg-role-requester); color: var(--zg-role-requester-text); }
+.zg-role-badge-it-staff { background: var(--zg-role-it-staff); color: var(--zg-role-it-staff-text); }
+.zg-role-badge-administrator { background: var(--zg-role-administrator); color: var(--zg-role-administrator-text); }
+
+/* Public Comments (green-tinted, shared with Requester+Staff) vs. Internal Notes
+   (amber-tinted, staff-only) — ui-spec.md §4: "visually distinct... so private content is
+   never mistaken for public." Border color alone never carries the meaning: the Internal
+   Notes panel also renders its own "Internal — not visible to Requester" text label. */
+.zg-comments-panel { border: 1px solid var(--zg-primary); border-left-width: 4px; border-radius: 8px; padding: 12px 16px; margin-top: 16px; }
+.zg-notes-panel { border: 1px solid var(--zg-warning); border-left-width: 4px; border-radius: 8px; padding: 12px 16px; margin-top: 16px; }
+.zg-notes-panel-label { color: var(--zg-warning); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
 
 @media (max-width: 767px) {
   .zg-card { margin: 8px; padding: 12px 16px; }
-  .zg-table, .zg-table thead { display: none; }
+  .zg-table thead { display: none; }
   .zg-table tbody tr {
     display: block;
     border: 1px solid var(--zg-border);
