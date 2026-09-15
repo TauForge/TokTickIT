@@ -35,9 +35,9 @@ app.get("/api/health", (_request, response) => {
 app.use("/api/categories", categoriesRouter);
 app.use("/api/related-systems", relatedSystemsRouter);
 app.use("/api/dev-requesters", devRequestersRouter);
-app.use("/api/tickets/:ticketId/attachments", attachmentsRouter);
-app.use("/api/attachments", attachmentActionsRouter);
-app.use("/api/tickets", ticketsRouter);
+app.use("/api/v1/tickets/:ticketId/attachments", attachmentsRouter);
+app.use("/api/v1/attachments", attachmentActionsRouter);
+app.use("/api/v1/tickets", ticketsRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/me", meRouter);
 

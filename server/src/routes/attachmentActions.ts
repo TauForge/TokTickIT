@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { prisma } from "../prisma";
-import { resolveDevRequester } from "../middleware/devRequester";
+import { requireAuth, requireRole, blockIfPasswordChangeRequired } from "../middleware/auth";
 import { HttpError } from "../middleware/errorEnvelope";
 import { readAttachmentFile } from "../services/storage";
 import { toAttachmentDto } from "./attachments";
 
 export const attachmentActionsRouter = Router();
+
+const requesterGate = [requireAuth, blockIfPasswordChangeRequired, requireRole("REQUESTER")];
 
 async function loadOwnedAttachment(id: string, requesterId: number) {
   const attachment = await prisma.attachment.findUnique({ where: { id }, include: { ticket: true } });
@@ -15,9 +17,9 @@ async function loadOwnedAttachment(id: string, requesterId: number) {
   return attachment;
 }
 
-attachmentActionsRouter.get("/:id/download", resolveDevRequester, async (req, res, next) => {
+attachmentActionsRouter.get("/:id/download", ...requesterGate, async (req, res, next) => {
   try {
-    const attachment = await loadOwnedAttachment(req.params.id, req.requester!.id);
+    const attachment = await loadOwnedAttachment(String(req.params.id), req.user!.id);
     if (attachment.isRemoved) {
       throw new HttpError(404, "NOT_FOUND", "Attachment not found");
     }
@@ -36,9 +38,9 @@ attachmentActionsRouter.get("/:id/download", resolveDevRequester, async (req, re
   }
 });
 
-attachmentActionsRouter.delete("/:id", resolveDevRequester, async (req, res, next) => {
+attachmentActionsRouter.delete("/:id", ...requesterGate, async (req, res, next) => {
   try {
-    const attachment = await loadOwnedAttachment(req.params.id, req.requester!.id);
+    const attachment = await loadOwnedAttachment(String(req.params.id), req.user!.id);
     const reason = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
     if (!reason) {
       throw new HttpError(400, "REASON_REQUIRED", "A removal reason is required");
