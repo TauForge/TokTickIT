@@ -209,11 +209,13 @@ export function StaffTicketDetail({ ticketId }: { ticketId: string }) {
                 Unassigned
               </option>
               {ticket.ownerId !== user!.id && <option value={user!.id}>Claim for myself</option>}
-              {owners.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.displayName}
-                </option>
-              ))}
+              {owners
+                .filter((o) => o.id !== user!.id)
+                .map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.displayName}
+                  </option>
+                ))}
             </select>
           </div>
           <div className="col-sm-4">
