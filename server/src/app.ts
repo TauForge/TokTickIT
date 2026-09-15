@@ -11,6 +11,8 @@ import { attachmentActionsRouter } from "./routes/attachmentActions";
 import { authRouter } from "./routes/auth";
 import { meRouter } from "./routes/me";
 import { staffAssignableOwnersRouter } from "./routes/staffAssignableOwners";
+import { staffCommentsRouter } from "./routes/staffComments";
+import { staffNotesRouter } from "./routes/staffNotes";
 import { staffTicketsRouter } from "./routes/staffTickets";
 import { errorEnvelope } from "./middleware/errorEnvelope";
 
@@ -43,6 +45,8 @@ app.use("/api/v1/tickets", ticketsRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/me", meRouter);
 app.use("/api/v1/staff/assignable-owners", staffAssignableOwnersRouter);
+app.use("/api/v1/staff/tickets/:ticketId/comments", staffCommentsRouter);
+app.use("/api/v1/staff/tickets/:ticketId/notes", staffNotesRouter);
 app.use("/api/v1/staff/tickets", staffTicketsRouter);
 
 app.use(errorEnvelope);
