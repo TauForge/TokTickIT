@@ -61,3 +61,25 @@ describe("PATCH /api/v1/tickets/:id/resolved-indication", () => {
     expect(response.status).toBe(404);
   });
 });
+
+describe("Staff Public Comments", () => {
+  it("IT Staff can post and list Public Comments on any ticket, visible to the owning Requester", async () => {
+    const staffLogin = await request(app).post("/api/v1/auth/login").send({ email: "amy.tran@toktickit.dev", password: "DevPass123!" });
+    const staffCookie = staffLogin.headers["set-cookie"];
+
+    const post = await request(app)
+      .post(`/api/v1/staff/tickets/${ticketId}/comments`)
+      .set("Cookie", staffCookie)
+      .send({ body: "We are looking into this." });
+    expect(post.status).toBe(201);
+    expect(post.body.authorRole).toBe("IT_STAFF");
+
+    const requesterView = await request(app).get(`/api/v1/tickets/${ticketId}/comments`).set("Cookie", cookie);
+    expect(requesterView.body.some((c: { body: string }) => c.body === "We are looking into this.")).toBe(true);
+  });
+
+  it("403 for a Requester calling the staff comments route", async () => {
+    const response = await request(app).get(`/api/v1/staff/tickets/${ticketId}/comments`).set("Cookie", cookie);
+    expect(response.status).toBe(403);
+  });
+});
