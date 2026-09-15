@@ -1,18 +1,21 @@
 import cors from "cors";
 import express from "express";
+import cookieParser from "cookie-parser";
 import { prisma } from "./prisma";
 import { categoriesRouter } from "./routes/categories";
 import { relatedSystemsRouter } from "./routes/relatedSystems";
-import { devRequestersRouter } from "./routes/devRequesters";
 import { ticketsRouter } from "./routes/tickets";
 import { attachmentsRouter } from "./routes/attachments";
 import { attachmentActionsRouter } from "./routes/attachmentActions";
+import { authRouter } from "./routes/auth";
+import { meRouter } from "./routes/me";
 import { errorEnvelope } from "./middleware/errorEnvelope";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 app.get("/", (_request, response) => {
   response.status(200).json({
@@ -30,10 +33,11 @@ app.get("/api/health", (_request, response) => {
 
 app.use("/api/categories", categoriesRouter);
 app.use("/api/related-systems", relatedSystemsRouter);
-app.use("/api/dev-requesters", devRequestersRouter);
-app.use("/api/tickets/:ticketId/attachments", attachmentsRouter);
-app.use("/api/attachments", attachmentActionsRouter);
-app.use("/api/tickets", ticketsRouter);
+app.use("/api/v1/tickets/:ticketId/attachments", attachmentsRouter);
+app.use("/api/v1/attachments", attachmentActionsRouter);
+app.use("/api/v1/tickets", ticketsRouter);
+app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/me", meRouter);
 
 app.use(errorEnvelope);
 

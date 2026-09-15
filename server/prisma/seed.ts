@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -20,12 +21,27 @@ const RELATED_SYSTEMS: { name: string; isActive: boolean }[] = [
   { name: "Legacy File Server", isActive: false },
 ];
 
-const REQUESTERS: { name: string; email: string; isActive: boolean }[] = [
-  { name: "Jennifer Anderson", email: "jennifer.anderson@toktickit.dev", isActive: true },
-  { name: "Michael Brown", email: "michael.brown@toktickit.dev", isActive: true },
-  { name: "Sarah Johnson", email: "sarah.johnson@toktickit.dev", isActive: true },
-  { name: "David Lee", email: "david.lee@toktickit.dev", isActive: true },
-  { name: "Retired Alumnus", email: "retired.alumnus@toktickit.dev", isActive: false },
+// The 5 Lab 2 Requester identities are already materialized as User rows by
+// migrations/20260915090000_lab3_auth_and_staff/migration.sql's id-preserving data copy —
+// this seed adds only the Lab 3 fixtures with no Lab 2 Requester equivalent.
+const SEED_PASSWORD = "DevPass123!";
+
+const NEW_USERS: {
+  email: string;
+  displayName: string;
+  role: "IT_STAFF" | "ADMINISTRATOR";
+  isActive: boolean;
+  mustChangePassword: boolean;
+}[] = [
+  { email: "amy.tran@toktickit.dev", displayName: "Amy Tran", role: "IT_STAFF", isActive: true, mustChangePassword: false },
+  { email: "carlos.mendez@toktickit.dev", displayName: "Carlos Mendez", role: "IT_STAFF", isActive: true, mustChangePassword: false },
+  { email: "priya.natarajan@toktickit.dev", displayName: "Priya Natarajan", role: "IT_STAFF", isActive: true, mustChangePassword: false },
+  { email: "former.tech@toktickit.dev", displayName: "Former Technician", role: "IT_STAFF", isActive: false, mustChangePassword: false },
+  { email: "admin@toktickit.dev", displayName: "System Administrator", role: "ADMINISTRATOR", isActive: true, mustChangePassword: false },
+  // FR-05/AC-02's mandatory first-login fixture — the only seeded user requiring a
+  // password change. Role is IT_STAFF (a newly onboarded technician), documented as an
+  // assumption since specification.md §12 doesn't pin a role for this fixture.
+  { email: "onboarding@toktickit.local", displayName: "New IT Staff Onboarding", role: "IT_STAFF", isActive: true, mustChangePassword: true },
 ];
 
 async function main() {
@@ -45,16 +61,22 @@ async function main() {
     });
   }
 
-  for (const requester of REQUESTERS) {
-    await prisma.requester.upsert({
-      where: { email: requester.email },
-      update: { name: requester.name, isActive: requester.isActive },
-      create: requester,
+  const passwordHash = await bcrypt.hash(SEED_PASSWORD, 10);
+  for (const user of NEW_USERS) {
+    await prisma.user.upsert({
+      where: { email: user.email },
+      update: {
+        displayName: user.displayName,
+        role: user.role,
+        isActive: user.isActive,
+        mustChangePassword: user.mustChangePassword,
+      },
+      create: { ...user, passwordHash },
     });
   }
 
   console.log(
-    `Seeded ${CATEGORIES.length} categories, ${RELATED_SYSTEMS.length} related systems, ${REQUESTERS.length} dev requesters.`,
+    `Seeded ${CATEGORIES.length} categories, ${RELATED_SYSTEMS.length} related systems, ${NEW_USERS.length} new Lab 3 users.`,
   );
 }
 
