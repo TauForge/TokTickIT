@@ -162,4 +162,32 @@ ticketsRouter.get("/:id", ...requesterGate, async (req, res, next) => {
   }
 });
 
+const NOT_RESOLVABLE_BY_REQUESTER = ["RESOLVED", "CLOSED", "CANCELLED"];
+
+ticketsRouter.patch("/:id/resolved-indication", ...requesterGate, async (req, res, next) => {
+  try {
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: String(req.params.id) },
+      include: { category: true, relatedSystem: true },
+    });
+    if (!ticket || ticket.requesterId !== req.user!.id) {
+      throw new HttpError(404, "NOT_FOUND", "Ticket not found");
+    }
+    if (NOT_RESOLVABLE_BY_REQUESTER.includes(ticket.status)) {
+      throw new HttpError(422, "VALIDATION_FAILED", "This ticket cannot be marked resolved by the requester right now.", [
+        { field: "status", message: "Ticket is already resolved, closed, or cancelled." },
+      ]);
+    }
+
+    const updated = await prisma.ticket.update({
+      where: { id: ticket.id },
+      data: { resolvedIndicatedByRequester: true },
+      include: { category: true, relatedSystem: true },
+    });
+    res.status(200).json({ ...toTicketDto(updated), resolvedIndicatedByRequester: updated.resolvedIndicatedByRequester });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export { toTicketDto, requesterGate };

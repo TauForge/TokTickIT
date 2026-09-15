@@ -2,61 +2,88 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./theme/zen-green.css";
 
 import { BrowserRouter, Link, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
-import { DevRequesterProvider, useDevRequester } from "./api/devRequesterContext";
-import { DevRequesterSelect } from "./screens/DevRequesterSelect";
+import { AuthProvider, useAuth } from "./api/authContext";
+import { RoleBadge } from "./components/badges";
+import { Login } from "./screens/Login";
+import { ChangePassword } from "./screens/ChangePassword";
 import { CreateTicket } from "./screens/CreateTicket";
 import { MyTickets } from "./screens/MyTickets";
 import { TicketDetail } from "./screens/TicketDetail";
 
-function TicketDetailRoute({ requesterId }: { requesterId: number }) {
+function TicketDetailRoute() {
   const { id } = useParams();
-  return <TicketDetail ticketId={id ?? ""} requesterId={requesterId} />;
+  return <TicketDetail ticketId={id ?? ""} />;
+}
+
+function CreateTicketRoute() {
+  const navigate = useNavigate();
+  return <CreateTicket onCreated={(ticket) => navigate(`/tickets/${ticket.id}`)} />;
+}
+
+function homeFor(role: string): string {
+  if (role === "IT_STAFF") return "/staff/tickets";
+  if (role === "ADMINISTRATOR") return "/admin/users";
+  return "/tickets";
 }
 
 function Shell() {
-  const { selectedId, requesters, clearSelection } = useDevRequester();
-  const navigate = useNavigate();
+  const { user, loading, logout } = useAuth();
 
-  if (!selectedId) {
-    return <DevRequesterSelect onContinue={() => {}} />;
+  if (loading) {
+    return (
+      <main className="container py-5">
+        <p>Loading…</p>
+      </main>
+    );
   }
 
-  const current = requesters.find((r) => r.id === selectedId);
+  if (!user) return <Login />;
+  if (user.mustChangePassword) return <ChangePassword />;
 
   return (
     <div>
-      <nav className="navbar navbar-expand navbar-light bg-light border-bottom px-3">
+      <header className="zg-app-header">
         <span className="navbar-brand">TokTickIT</span>
-        <div className="navbar-nav me-auto">
-          <Link className="nav-link" to="/tickets">
-            My Tickets
-          </Link>
-          <Link className="nav-link" to="/tickets/new">
-            Create Ticket
-          </Link>
-        </div>
+        <nav>
+          {user.role === "REQUESTER" && (
+            <>
+              <Link to="/tickets">My Tickets</Link>
+              <Link to="/tickets/new">Create Ticket</Link>
+            </>
+          )}
+          {user.role === "IT_STAFF" && (
+            <>
+              <Link to="/staff/tickets">My Queue</Link>
+              <Link to="/tickets/new">Create Ticket</Link>
+            </>
+          )}
+          {user.role === "ADMINISTRATOR" && <Link to="/admin/users">Admin</Link>}
+        </nav>
         <div className="d-flex align-items-center">
-          <span className="me-3">{current?.name}</span>
-          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={clearSelection}>
-            Change Requester
+          <span className="me-3">
+            {user.displayName} <RoleBadge value={user.role} />
+          </span>
+          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={logout}>
+            Logout
           </button>
         </div>
-      </nav>
+      </header>
       <Routes>
-        <Route path="/tickets" element={<MyTickets requesterId={selectedId} />} />
-        <Route
-          path="/tickets/new"
-          element={
-            <CreateTicket
-              requesterId={selectedId}
-              requesterName={current?.name ?? ""}
-              onCreated={(ticket) => navigate(`/tickets/${ticket.id}`)}
-            />
-          }
-        />
-        <Route path="/tickets/:id" element={<TicketDetailRoute requesterId={selectedId} />} />
-        <Route path="/" element={<Navigate to="/tickets" replace />} />
-        <Route path="*" element={<Navigate to="/tickets" replace />} />
+        {user.role === "REQUESTER" && (
+          <>
+            <Route path="/tickets" element={<MyTickets />} />
+            <Route path="/tickets/new" element={<CreateTicketRoute />} />
+            <Route path="/tickets/:id" element={<TicketDetailRoute />} />
+          </>
+        )}
+        {user.role === "IT_STAFF" && (
+          <>
+            <Route path="/tickets/new" element={<CreateTicketRoute />} />
+            <Route path="/tickets/:id" element={<TicketDetailRoute />} />
+          </>
+        )}
+        <Route path="/" element={<Navigate to={homeFor(user.role)} replace />} />
+        <Route path="*" element={<p role="alert">You don't have access to this page.</p>} />
       </Routes>
     </div>
   );
@@ -65,9 +92,9 @@ function Shell() {
 export function App() {
   return (
     <BrowserRouter>
-      <DevRequesterProvider>
+      <AuthProvider>
         <Shell />
-      </DevRequesterProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

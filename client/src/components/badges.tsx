@@ -26,3 +26,20 @@ export function StatusBadge({ value }: { value: string }) {
     </span>
   );
 }
+
+const ROLE_LABEL: Record<string, string> = {
+  REQUESTER: "Requester",
+  IT_STAFF: "IT Staff",
+  ADMINISTRATOR: "Administrator",
+};
+
+export function RoleBadge({ value }: { value: string }) {
+  return (
+    <span
+      data-testid="role-badge"
+      className={`badge zg-badge zg-role-badge-${value.toLowerCase().replace("_", "-")}`}
+    >
+      {ROLE_LABEL[value] ?? value}
+    </span>
+  );
+}

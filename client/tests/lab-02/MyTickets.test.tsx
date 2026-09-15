@@ -1,13 +1,19 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { AuthProvider } from "../../src/api/authContext";
 import { MyTickets } from "../../src/screens/MyTickets";
+import { mockFetchByUrl, meResponse } from "../lab-03/testHelpers";
+
+const requester = { id: 1, email: "jennifer.anderson@toktickit.dev", displayName: "Jennifer Anderson", role: "REQUESTER" as const, mustChangePassword: false };
 
 function renderWithRouter() {
   return render(
-    <MemoryRouter>
-      <MyTickets requesterId={1} />
-    </MemoryRouter>,
+    <AuthProvider>
+      <MemoryRouter>
+        <MyTickets />
+      </MemoryRouter>
+    </AuthProvider>,
   );
 }
 
@@ -17,13 +23,10 @@ describe("MyTickets", () => {
   });
 
   it("shows the empty state when totalItems is 0", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({ items: [], page: 1, pageSize: 10, totalItems: 0, totalPages: 1 }),
-      }),
-    );
+    mockFetchByUrl({
+      "/api/v1/me": meResponse(requester),
+      "/api/tickets": { ok: true, json: async () => ({ items: [], page: 1, pageSize: 10, totalItems: 0, totalPages: 1 }) },
+    });
 
     renderWithRouter();
 
@@ -33,9 +36,9 @@ describe("MyTickets", () => {
   });
 
   it("renders ticket rows with badges when items are present", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
+    mockFetchByUrl({
+      "/api/v1/me": meResponse(requester),
+      "/api/tickets": {
         ok: true,
         json: async () => ({
           items: [
@@ -56,8 +59,8 @@ describe("MyTickets", () => {
           totalItems: 1,
           totalPages: 1,
         }),
-      }),
-    );
+      },
+    });
 
     renderWithRouter();
 
@@ -65,18 +68,19 @@ describe("MyTickets", () => {
     expect(screen.getByText("Laptop battery drains quickly")).toBeInTheDocument();
     expect(screen.getByTestId("priority-badge-requested")).toHaveTextContent("Medium");
     expect(screen.getByTestId("status-badge")).toHaveTextContent("New");
-    expect(screen.getByRole("link", { name: "TKT-2026-000001" })).toHaveAttribute(
-      "href",
-      "/tickets/t1",
-    );
+    expect(screen.getByRole("link", { name: "TKT-2026-000001" })).toHaveAttribute("href", "/tickets/t1");
   });
 
   it("sends categoryId, status, and sort as query parameters when filters are changed", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ items: [], page: 1, pageSize: 10, totalItems: 0, totalPages: 1 }),
-    });
-    vi.stubGlobal("fetch", fetchMock);
+    const calls: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((url: string) => {
+        calls.push(url);
+        if (url.includes("/api/v1/me")) return Promise.resolve(meResponse(requester));
+        return Promise.resolve({ ok: true, json: async () => ({ items: [], page: 1, pageSize: 10, totalItems: 0, totalPages: 1 }) });
+      }),
+    );
     const { default: userEvent } = await import("@testing-library/user-event");
     const user = userEvent.setup();
 
@@ -87,9 +91,9 @@ describe("MyTickets", () => {
     await user.selectOptions(screen.getByLabelText(/^sort by/i), "updatedAt");
 
     await waitFor(() => {
-      const lastCallUrl = fetchMock.mock.calls.at(-1)?.[0] as string;
-      expect(lastCallUrl).toContain("status=NEW");
-      expect(lastCallUrl).toContain("sort=updatedAt");
+      const lastTicketsCall = calls.filter((c) => c.includes("/tickets?")).at(-1) ?? "";
+      expect(lastTicketsCall).toContain("status=NEW");
+      expect(lastTicketsCall).toContain("sort=updatedAt");
     });
   });
 });
