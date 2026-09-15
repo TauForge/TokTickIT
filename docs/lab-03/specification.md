@@ -286,10 +286,9 @@ error state is shown, never a raw stack trace.
   `App.test.tsx` gap noted above (present before Lab 3, not introduced by it).
 - [x] README documents the seeded local-dev accounts and the mandatory-first-login fixture.
 - [ ] All Lab 3 Issues merged into `lab3-staging` via peer-reviewed PRs, then into `main`.
-  Issues #29-#32 are merged into `lab3-staging`; this issue (#33) is not yet merged as of
-  this commit, and no PR from `lab3-staging` into `main` has been opened yet — that PR is
-  explicitly gated on this issue closing first (see issue #33's own description). Owner:
-  whoever merges the PR this branch is about to open.
+  Issues #29-#33 (PRs #34, #35, #38, #37, #39) are all merged into `lab3-staging`. PR #40
+  (`lab3-staging` -> `main`, closes #28) is open as a draft, not yet reviewed or merged as
+  of this commit. Owner: whoever reviews, marks PR #40 ready, and merges it.
 - [x] Specification, ui-spec, api-spec, and tests docs all existed before implementation PRs
   merged (traceable via commit history).
 

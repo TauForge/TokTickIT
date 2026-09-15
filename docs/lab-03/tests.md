@@ -62,15 +62,34 @@ or API + UI). The sheet's own three given examples are reused verbatim as API-01
 API-08 (Requester requests Internal Notes), and E2E-02 (Initial password login and change).
 
 ## 4. Responsive and Visual Checklist
-- [ ] No clipped labels, overlapping messages, or hidden buttons at any viewport, on any of the 4
-  new/changed screens (Login/Change Password, Requester Ticket Detail w/ comments, Staff Queue,
-  Staff Ticket Detail, Admin User Management).
-- [ ] No unintended horizontal scrolling on mobile (<768px).
-- [ ] Public Comments and Internal Notes panels are visually distinct at every viewport, not just
-  desktop.
-- [ ] Role/status/priority badges consistent with Lab 2's badge system, text always present.
+Verified during Task 34 against the 12 screenshots in `artifacts/lab-03/screenshots/` (the 4
+screens `visual-states.spec.ts` captures — Authentication, Staff Queue, Staff Ticket Detail,
+Admin User Management — × 3 viewports each). The Requester Ticket Detail Public Comments
+addition wasn't separately screenshotted (it extends Lab 2's existing Ticket Detail layout,
+covered by `StaffTicketDetail.test.tsx`'s comments-panel assertions and Lab 2's own
+visual-check spec for the base layout); the other 4 screens cover every screen ui-spec.md's
+own "Screenshot paths" section names.
+- [x] No clipped labels, overlapping messages, or hidden buttons at any viewport, on any of
+  the 4 captured screens (confirmed by inspecting all 12 screenshots directly).
+- [x] No unintended horizontal scrolling on mobile (<768px) — asserted programmatically by
+  `assertNoHorizontalOverflow()` in every one of the 12 `visual-states.spec.ts` test runs,
+  all passing (tests.md §6), not just eyeballed from the screenshots.
+- [x] Public Comments and Internal Notes panels are visually distinct at every viewport, not
+  just desktop — confirmed on Staff Ticket Detail: green-bordered Public Comments vs.
+  amber-bordered Internal Notes with its own "INTERNAL — NOT VISIBLE TO REQUESTER" label,
+  present identically at mobile/tablet/desktop.
+- [x] Role/status/priority badges consistent with Lab 2's badge system, text always present —
+  confirmed on Staff Queue (Low/High/New/In Progress) and User Management (role + Active/
+  Inactive badges), all with visible text, not color-only.
 - [ ] Disabled Administrator safety buttons (self-deactivation, last-admin) show a tooltip, not
-  just a disabled cursor, at touch-only (no-hover) viewports.
+  just a disabled cursor, at touch-only (no-hover) viewports. **Not verified visually** —
+  `visual-states.spec.ts`'s "user management screen" test only screenshots the list view, not
+  the edit drawer with a target user selected, so the disabled button + tooltip state was
+  never captured at any viewport. The underlying behavior is functionally covered (disabled
+  state + `title` attribute both asserted in `user-administration.spec.ts`, which passes), but
+  that spec runs at the default desktop viewport only — the touch-only/no-hover claim
+  specifically is unverified. Owner: whoever extends `visual-states.spec.ts` to open the
+  drawer before screenshotting, or does a manual pass on a touch device.
 
 ## 5. Test Commands
 - Server: `cd server && npm test`
