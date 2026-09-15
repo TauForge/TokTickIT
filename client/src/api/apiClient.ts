@@ -3,43 +3,57 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000"
   "",
 );
 
-interface ApiErrorPayload {
-  error?: {
-    message?: string;
-    fieldErrors?: unknown[];
-  };
+export interface FieldError {
+  field: string;
+  message: string;
 }
 
-export async function apiGet<T>(path: string, requesterId?: number): Promise<T> {
-  const headers: Record<string, string> = {};
-  if (requesterId !== undefined) headers["x-dev-requester-id"] = String(requesterId);
+interface ApiErrorPayload {
+  error?: { message?: string; fieldErrors?: FieldError[] };
+}
 
-  const response = await fetch(`${apiBaseUrl}${path}`, { headers });
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as ApiErrorPayload | null;
-    throw new Error(body?.error?.message ?? `Request failed with ${response.status}`);
+export class ApiRequestError extends Error {
+  fieldErrors: FieldError[];
+  constructor(message: string, fieldErrors: FieldError[] = []) {
+    super(message);
+    this.fieldErrors = fieldErrors;
   }
+}
+
+async function throwFromErrorResponse(response: Response): Promise<never> {
+  const body = (await response.json().catch(() => null)) as ApiErrorPayload | null;
+  throw new ApiRequestError(
+    body?.error?.message ?? `Request failed with ${response.status}`,
+    body?.error?.fieldErrors ?? [],
+  );
+}
+
+export async function apiGet<T>(path: string): Promise<T> {
+  const response = await fetch(`${apiBaseUrl}${path}`, { credentials: "include" });
+  if (!response.ok) return throwFromErrorResponse(response);
   return response.json() as Promise<T>;
 }
 
-export async function apiPost<T>(
-  path: string,
-  body: unknown,
-  requesterId?: number,
-): Promise<T> {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (requesterId !== undefined) headers["x-dev-requester-id"] = String(requesterId);
-
+export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   const response = await fetch(`${apiBaseUrl}${path}`, {
     method: "POST",
-    headers,
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const payload = (await response.json().catch(() => null)) as (ApiErrorPayload & T) | null;
-  if (!response.ok) {
-    throw Object.assign(new Error(payload?.error?.message ?? "Request failed"), {
-      fieldErrors: payload?.error?.fieldErrors ?? [],
-    });
-  }
-  return payload as T;
+  if (!response.ok) return throwFromErrorResponse(response);
+  return response.json() as Promise<T>;
 }
+
+export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) return throwFromErrorResponse(response);
+  return response.json() as Promise<T>;
+}
+
+export { apiBaseUrl };
