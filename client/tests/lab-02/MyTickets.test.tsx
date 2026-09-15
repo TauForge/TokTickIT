@@ -25,7 +25,7 @@ describe("MyTickets", () => {
   it("shows the empty state when totalItems is 0", async () => {
     mockFetchByUrl({
       "/api/v1/me": meResponse(requester),
-      "/api/tickets": { ok: true, json: async () => ({ items: [], page: 1, pageSize: 10, totalItems: 0, totalPages: 1 }) },
+      "/api/v1/tickets": { ok: true, json: async () => ({ items: [], page: 1, pageSize: 10, totalItems: 0, totalPages: 1 }) },
     });
 
     renderWithRouter();
@@ -38,7 +38,7 @@ describe("MyTickets", () => {
   it("renders ticket rows with badges when items are present", async () => {
     mockFetchByUrl({
       "/api/v1/me": meResponse(requester),
-      "/api/tickets": {
+      "/api/v1/tickets": {
         ok: true,
         json: async () => ({
           items: [

@@ -57,7 +57,7 @@ export function MyTickets() {
     if (itPriority) params.set("itPriority", itPriority);
     if (status) params.set("status", status);
 
-    apiGet<TicketListResponse>(`/api/tickets?${params.toString()}`)
+    apiGet<TicketListResponse>(`/api/v1/tickets?${params.toString()}`)
       .then((response) => {
         setData(response);
         setError(null);
