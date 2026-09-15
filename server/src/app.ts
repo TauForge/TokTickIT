@@ -10,6 +10,8 @@ import { attachmentsRouter } from "./routes/attachments";
 import { attachmentActionsRouter } from "./routes/attachmentActions";
 import { authRouter } from "./routes/auth";
 import { meRouter } from "./routes/me";
+import { staffAssignableOwnersRouter } from "./routes/staffAssignableOwners";
+import { staffTicketsRouter } from "./routes/staffTickets";
 import { errorEnvelope } from "./middleware/errorEnvelope";
 
 const app = express();
@@ -40,6 +42,8 @@ app.use("/api/v1/attachments", attachmentActionsRouter);
 app.use("/api/v1/tickets", ticketsRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/me", meRouter);
+app.use("/api/v1/staff/assignable-owners", staffAssignableOwnersRouter);
+app.use("/api/v1/staff/tickets", staffTicketsRouter);
 
 app.use(errorEnvelope);
 
