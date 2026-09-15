@@ -11,6 +11,7 @@ import { MyTickets } from "./screens/MyTickets";
 import { StaffTicketQueue } from "./screens/StaffTicketQueue";
 import { StaffTicketDetail } from "./screens/StaffTicketDetail";
 import { TicketDetail } from "./screens/TicketDetail";
+import { UserManagement } from "./screens/UserManagement";
 
 function TicketDetailRoute() {
   const { id } = useParams();
@@ -91,6 +92,7 @@ function Shell() {
             <Route path="/tickets/:id" element={<TicketDetailRoute />} />
           </>
         )}
+        {user.role === "ADMINISTRATOR" && <Route path="/admin/users" element={<UserManagement />} />}
         <Route path="/" element={<Navigate to={homeFor(user.role)} replace />} />
         <Route path="*" element={<p role="alert">You don't have access to this page.</p>} />
       </Routes>
