@@ -272,15 +272,25 @@ AC-20 Given the backend is unreachable, when any Lab 3 screen loads/submits, the
 error state is shown, never a raw stack trace.
 
 ## 11. Definition of Done
-- [ ] Every AC above has at least one passing automated test, traced in tests.md.
-- [ ] Every FR/BR above is implemented; any tracked gap is documented here, not silently dropped.
-- [ ] Unit, API, UI component, UI style/visual, responsive, authorization, migration/regression,
-  and E2E tests all pass from the final branch.
-- [ ] No required test is skipped, disabled, or commented out.
-- [ ] docs/lab-01/ and docs/lab-02/ tests still pass unmodified.
-- [ ] README documents the seeded local-dev accounts and the mandatory-first-login fixture.
+- [x] Every AC above has at least one passing automated test, traced in tests.md (AC-01
+  through AC-20, tests.md §3).
+- [x] Every FR/BR above is implemented; any tracked gap is documented here, not silently
+  dropped. One tracked gap: `tests/lab-01/App.test.tsx` fails in the client's jsdom test
+  environment (`localStorage.clear()` throws) — confirmed pre-existing on a clean
+  `lab3-staging` checkout before any Lab 3 work touched the client, so it is a Lab 1
+  test-infrastructure gap, not an unmet Lab 3 FR/BR. See tests.md §6 for detail.
+- [x] Unit, API, UI component, UI style/visual, responsive, authorization, migration/regression,
+  and E2E tests all pass from the final branch (`feature/9e-lab3-e2e-final`, see tests.md §6).
+- [x] No required test is skipped, disabled, or commented out.
+- [x] docs/lab-01/ and docs/lab-02/ tests still pass unmodified, except the one pre-existing
+  `App.test.tsx` gap noted above (present before Lab 3, not introduced by it).
+- [x] README documents the seeded local-dev accounts and the mandatory-first-login fixture.
 - [ ] All Lab 3 Issues merged into `lab3-staging` via peer-reviewed PRs, then into `main`.
-- [ ] Specification, ui-spec, api-spec, and tests docs all existed before implementation PRs
+  Issues #29-#32 are merged into `lab3-staging`; this issue (#33) is not yet merged as of
+  this commit, and no PR from `lab3-staging` into `main` has been opened yet — that PR is
+  explicitly gated on this issue closing first (see issue #33's own description). Owner:
+  whoever merges the PR this branch is about to open.
+- [x] Specification, ui-spec, api-spec, and tests docs all existed before implementation PRs
   merged (traceable via commit history).
 
 ## 12. Assumptions and Decisions
