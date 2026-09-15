@@ -1,7 +1,7 @@
 import { FieldError } from "../middleware/errorEnvelope";
 import { validatePasswordPolicy } from "../services/password";
 
-const ROLES = ["REQUESTER", "IT_STAFF", "ADMINISTRATOR"];
+export const ROLES = ["REQUESTER", "IT_STAFF", "ADMINISTRATOR"];
 
 export interface CreateUserInput {
   displayName: string;

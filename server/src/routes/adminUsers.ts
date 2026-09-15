@@ -3,7 +3,7 @@ import { prisma } from "../prisma";
 import { requireAuth, requireRole, blockIfPasswordChangeRequired } from "../middleware/auth";
 import { HttpError } from "../middleware/errorEnvelope";
 import { hashPassword } from "../services/password";
-import { validateCreateUserRequest, validateEditUserRequest, validateSetPasswordRequest } from "../validators/adminUserRequest";
+import { ROLES, validateCreateUserRequest, validateEditUserRequest, validateSetPasswordRequest } from "../validators/adminUserRequest";
 
 export const adminUsersRouter = Router();
 
@@ -17,7 +17,11 @@ export function toUserAdminDto(u: { id: number; email: string; displayName: stri
 adminUsersRouter.get("/", ...adminGate, async (req, res, next) => {
   try {
     const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
-    const role = typeof req.query.role === "string" ? req.query.role : undefined;
+    const roleParam = typeof req.query.role === "string" ? req.query.role : undefined;
+    if (roleParam !== undefined && !ROLES.includes(roleParam)) {
+      throw new HttpError(400, "INVALID_ROLE_FILTER", "role must be one of REQUESTER, IT_STAFF, ADMINISTRATOR");
+    }
+    const role = roleParam;
 
     const users = await prisma.user.findMany({
       where: {
