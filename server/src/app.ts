@@ -14,6 +14,7 @@ import { staffAssignableOwnersRouter } from "./routes/staffAssignableOwners";
 import { staffCommentsRouter } from "./routes/staffComments";
 import { staffNotesRouter } from "./routes/staffNotes";
 import { staffTicketsRouter } from "./routes/staffTickets";
+import { staffAttachmentsRouter } from "./routes/staffAttachments";
 import { errorEnvelope } from "./middleware/errorEnvelope";
 
 const app = express();
@@ -47,6 +48,7 @@ app.use("/api/v1/me", meRouter);
 app.use("/api/v1/staff/assignable-owners", staffAssignableOwnersRouter);
 app.use("/api/v1/staff/tickets/:ticketId/comments", staffCommentsRouter);
 app.use("/api/v1/staff/tickets/:ticketId/notes", staffNotesRouter);
+app.use("/api/v1/staff/tickets/:ticketId/attachments", staffAttachmentsRouter);
 app.use("/api/v1/staff/tickets", staffTicketsRouter);
 
 app.use(errorEnvelope);
