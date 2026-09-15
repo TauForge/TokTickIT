@@ -4,8 +4,8 @@ import { prisma } from "../prisma";
 import { requireAuth, requireRole, blockIfPasswordChangeRequired } from "../middleware/auth";
 import { parseStaffTicketQuery } from "../validators/staffTicketQuery";
 import { HttpError } from "../middleware/errorEnvelope";
-import { isTerminal, TicketStatus } from "../services/ticketStatusTransitions";
-import { validateOwnerRequest, validatePriorityRequest } from "../validators/staffTicketMutationRequest";
+import { isTerminal, isValidTransition, TicketStatus } from "../services/ticketStatusTransitions";
+import { validateOwnerRequest, validatePriorityRequest, validateStatusRequest } from "../validators/staffTicketMutationRequest";
 
 export const staffTicketsRouter = Router();
 
@@ -196,6 +196,40 @@ staffTicketsRouter.patch("/:id/priority", ...staffGate, async (req, res, next) =
     const updated = await prisma.ticket.update({
       where: { id: ticket.id },
       data: { itPriority: validation.value.itPriority },
+      include: STAFF_DETAIL_INCLUDE,
+    });
+    res.status(200).json(toStaffTicketDetailDto(updated));
+  } catch (error) {
+    next(error);
+  }
+});
+
+staffTicketsRouter.patch("/:id/status", ...staffGate, async (req, res, next) => {
+  try {
+    const validation = validateStatusRequest(req.body);
+    if (!validation.ok) {
+      throw new HttpError(422, "VALIDATION_FAILED", "One or more fields are invalid", validation.errors);
+    }
+
+    const ticket = await prisma.ticket.findUnique({ where: { id: req.params.id } });
+    if (!ticket) throw new HttpError(404, "NOT_FOUND", "Ticket not found");
+
+    const from = ticket.status as TicketStatus;
+    const to = validation.value.status;
+
+    // BR-18: CLOSED only permits ->REOPENED; CANCELLED permits nothing. isTerminal(from)
+    // catches both, and the isValidTransition check below still runs for CLOSED->REOPENED
+    // (it is a real matrix row, not exempted by the terminal-status check alone).
+    if (isTerminal(from) && !(from === "CLOSED" && to === "REOPENED")) {
+      throw new HttpError(409, "TICKET_LOCKED", "This ticket is locked and its status cannot change");
+    }
+    if (!isValidTransition(from, to)) {
+      throw new HttpError(409, "INVALID_STATUS_TRANSITION", `Cannot transition from ${from} to ${to}`);
+    }
+
+    const updated = await prisma.ticket.update({
+      where: { id: ticket.id },
+      data: { status: to },
       include: STAFF_DETAIL_INCLUDE,
     });
     res.status(200).json(toStaffTicketDetailDto(updated));
