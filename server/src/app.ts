@@ -20,7 +20,10 @@ import { errorEnvelope } from "./middleware/errorEnvelope";
 
 const app = express();
 
-app.use(cors());
+// Lab 3 login uses a cookie-based session sent with `credentials: "include"` — a
+// wildcard origin is incompatible with credentialed requests (the browser refuses to
+// store/send the cookie), so this must echo the specific client origin instead.
+app.use(cors({ origin: process.env.CLIENT_URL ?? "http://localhost:5173", credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
