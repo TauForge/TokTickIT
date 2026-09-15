@@ -14,10 +14,10 @@ const TICKET_DETAIL_URL = /\/tickets\/(?!new)[^/]+$/;
 
 test("a requester can select an identity, create a ticket, and find it in My Tickets", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /select development requester/i })).toBeVisible();
-
-  await page.getByLabel(/development requester/i).selectOption({ label: "Jennifer Anderson" });
-  await page.getByRole("button", { name: /continue/i }).click();
+  await page.getByLabel(/email/i).fill("jennifer.anderson@toktickit.dev");
+  await page.getByLabel(/password/i).fill("DevPass123!");
+  await page.getByRole("button", { name: /sign in/i }).click();
+  await page.getByRole("heading", { name: /my tickets/i }).waitFor();
 
   const summary = `E2E test ${runId}: laptop will not power on`;
   await page.goto("/tickets/new");
@@ -40,8 +40,10 @@ test("a requester can select an identity, create a ticket, and find it in My Tic
 
 test("requester B cannot see requester A's tickets in My Tickets", async ({ page, browser }) => {
   await page.goto("/");
-  await page.getByLabel(/development requester/i).selectOption({ label: "Jennifer Anderson" });
-  await page.getByRole("button", { name: /continue/i }).click();
+  await page.getByLabel(/email/i).fill("jennifer.anderson@toktickit.dev");
+  await page.getByLabel(/password/i).fill("DevPass123!");
+  await page.getByRole("button", { name: /sign in/i }).click();
+  await page.getByRole("heading", { name: /my tickets/i }).waitFor();
 
   const summary = `E2E isolation test ${runId} for requester A`;
   await page.goto("/tickets/new");
@@ -53,15 +55,16 @@ test("requester B cannot see requester A's tickets in My Tickets", async ({ page
   await page.waitForURL(TICKET_DETAIL_URL);
   await expect(page.getByText(/TKT-\d{4}-\d{6}/)).toBeVisible();
 
-  // A second BrowserContext (not context.newPage() on the same context) gets its own
-  // localStorage, so requester B's session genuinely starts from the Selector screen instead
-  // of inheriting requester A's already-selected identity.
+  // A second BrowserContext (not context.newPage() on the same context) gets its own cookie
+  // jar, so requester B's session genuinely starts unauthenticated instead of inheriting
+  // requester A's session cookie.
   const contextB = await browser.newContext();
   const pageB = await contextB.newPage();
   await pageB.goto("/");
-  await expect(pageB.getByRole("heading", { name: /select development requester/i })).toBeVisible();
-  await pageB.getByLabel(/development requester/i).selectOption({ label: "Michael Brown" });
-  await pageB.getByRole("button", { name: /continue/i }).click();
+  await pageB.getByLabel(/email/i).fill("michael.brown@toktickit.dev");
+  await pageB.getByLabel(/password/i).fill("DevPass123!");
+  await pageB.getByRole("button", { name: /sign in/i }).click();
+  await pageB.getByRole("heading", { name: /my tickets/i }).waitFor();
   await pageB.goto("/tickets");
   await pageB.getByLabel(/^search$/i).fill(`E2E isolation test ${runId}`);
   await expect(pageB.getByText(/no tickets match/i)).toBeVisible();
