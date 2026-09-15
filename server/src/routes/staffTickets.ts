@@ -5,7 +5,7 @@ import { requireAuth, requireRole, blockIfPasswordChangeRequired } from "../midd
 import { parseStaffTicketQuery } from "../validators/staffTicketQuery";
 import { HttpError } from "../middleware/errorEnvelope";
 import { isTerminal, TicketStatus } from "../services/ticketStatusTransitions";
-import { validateOwnerRequest } from "../validators/staffTicketMutationRequest";
+import { validateOwnerRequest, validatePriorityRequest } from "../validators/staffTicketMutationRequest";
 
 export const staffTicketsRouter = Router();
 
@@ -171,6 +171,31 @@ staffTicketsRouter.patch("/:id/owner", ...staffGate, async (req, res, next) => {
     const updated = await prisma.ticket.update({
       where: { id: ticket.id },
       data: { ownerId: newOwner.id, status: nextStatus as TicketStatus },
+      include: STAFF_DETAIL_INCLUDE,
+    });
+    res.status(200).json(toStaffTicketDetailDto(updated));
+  } catch (error) {
+    next(error);
+  }
+});
+
+staffTicketsRouter.patch("/:id/priority", ...staffGate, async (req, res, next) => {
+  try {
+    const validation = validatePriorityRequest(req.body);
+    if (!validation.ok) {
+      throw new HttpError(422, "VALIDATION_FAILED", "One or more fields are invalid", validation.errors);
+    }
+
+    const ticket = await prisma.ticket.findUnique({ where: { id: req.params.id } });
+    if (!ticket) throw new HttpError(404, "NOT_FOUND", "Ticket not found");
+    if (isTerminal(ticket.status as TicketStatus)) {
+      throw new HttpError(409, "TICKET_LOCKED", "This ticket is locked and its priority cannot change");
+    }
+
+    // BR-17: only itPriority changes here — requestedPriority is immutable after creation.
+    const updated = await prisma.ticket.update({
+      where: { id: ticket.id },
+      data: { itPriority: validation.value.itPriority },
       include: STAFF_DETAIL_INCLUDE,
     });
     res.status(200).json(toStaffTicketDetailDto(updated));
