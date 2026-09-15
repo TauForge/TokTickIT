@@ -15,6 +15,7 @@ import { staffCommentsRouter } from "./routes/staffComments";
 import { staffNotesRouter } from "./routes/staffNotes";
 import { staffTicketsRouter } from "./routes/staffTickets";
 import { staffAttachmentsRouter } from "./routes/staffAttachments";
+import { adminUsersRouter } from "./routes/adminUsers";
 import { errorEnvelope } from "./middleware/errorEnvelope";
 
 const app = express();
@@ -50,6 +51,7 @@ app.use("/api/v1/staff/tickets/:ticketId/comments", staffCommentsRouter);
 app.use("/api/v1/staff/tickets/:ticketId/notes", staffNotesRouter);
 app.use("/api/v1/staff/tickets/:ticketId/attachments", staffAttachmentsRouter);
 app.use("/api/v1/staff/tickets", staffTicketsRouter);
+app.use("/api/v1/admin/users", adminUsersRouter);
 
 app.use(errorEnvelope);
 
