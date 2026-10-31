@@ -134,6 +134,8 @@ model Ticket {
   @@index([ownerId])
   @@index([status])
   @@index([categoryId])
+  @@index([ownerId, status])
+  @@index([updatedAt])
 }
 
 model ActionTaken {
@@ -155,6 +157,7 @@ model ActionTaken {
 
   @@unique([performedById, idempotencyKey])
   @@index([ticketId, actionAt, id])
+  @@index([performedById, actionAt])
 }
 
 model Attachment {
