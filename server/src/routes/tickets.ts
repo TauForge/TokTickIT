@@ -2,6 +2,7 @@ import { Router, RequestHandler } from "express";
 import { prisma } from "../prisma";
 import { requireAuth, requireRole, blockIfPasswordChangeRequired } from "../middleware/auth";
 import { validateCreateTicketRequest } from "../validators/createTicketRequest";
+import { ACTIVE_STATUSES } from "../services/dashboards";
 import { parseTicketQuery } from "../validators/ticketQuery";
 import { generateTicketNumber } from "../services/ticketNumber";
 import { HttpError } from "../middleware/errorEnvelope";
@@ -116,7 +117,8 @@ ticketsRouter.get("/", ...requesterGate, async (req, res, next) => {
       ...(query.categoryId ? { categoryId: query.categoryId } : {}),
       ...(query.requestedPriority ? { requestedPriority: query.requestedPriority } : {}),
       ...(query.itPriority ? { itPriority: query.itPriority } : {}),
-      ...(query.status ? { status: query.status } : {}),
+      // `status` wins over `activeOnly` (same rule as the staff queue); "My Open" drill-down uses activeOnly.
+      ...(query.status ? { status: query.status } : query.activeOnly ? { status: { in: ACTIVE_STATUSES } } : {}),
       ...(query.search
         ? {
             OR: [

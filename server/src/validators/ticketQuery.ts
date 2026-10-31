@@ -1,15 +1,20 @@
+import { HttpError } from "../middleware/errorEnvelope";
+
 export interface TicketQuery {
   search?: string;
   categoryId?: number;
   requestedPriority?: "LOW" | "MEDIUM" | "HIGH";
   itPriority?: "LOW" | "MEDIUM" | "HIGH";
-  status?: "NEW";
+  status?: TicketStatusValue;
+  activeOnly: boolean;
   sort: "createdAt" | "updatedAt";
   order: "asc" | "desc";
   page: number;
   pageSize: number;
 }
 
+const STATUSES = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"] as const;
+type TicketStatusValue = (typeof STATUSES)[number];
 const PRIORITIES = ["LOW", "MEDIUM", "HIGH"];
 const SORT_FIELDS = ["createdAt", "updatedAt"];
 
@@ -17,6 +22,11 @@ export function parseTicketQuery(raw: Record<string, unknown>): TicketQuery {
   const page = Number(raw.page);
   const pageSize = Number(raw.pageSize);
   const categoryId = Number(raw.categoryId);
+  if (raw.status !== undefined && !STATUSES.includes(raw.status as TicketStatusValue)) {
+    throw new HttpError(422, "VALIDATION_FAILED", "One or more fields are invalid", [
+      { field: "status", message: "Unknown ticket status." },
+    ]);
+  }
 
   return {
     search: typeof raw.search === "string" && raw.search.trim() ? raw.search.trim() : undefined,
@@ -25,7 +35,8 @@ export function parseTicketQuery(raw: Record<string, unknown>): TicketQuery {
       ? (raw.requestedPriority as TicketQuery["requestedPriority"])
       : undefined,
     itPriority: PRIORITIES.includes(String(raw.itPriority)) ? (raw.itPriority as TicketQuery["itPriority"]) : undefined,
-    status: raw.status === "NEW" ? "NEW" : undefined,
+    status: raw.status as TicketStatusValue | undefined,
+    activeOnly: raw.activeOnly === "true",
     sort: SORT_FIELDS.includes(String(raw.sort)) ? (raw.sort as TicketQuery["sort"]) : "createdAt",
     order: raw.order === "asc" ? "asc" : "desc",
     page: Number.isInteger(page) && page > 0 ? page : 1,

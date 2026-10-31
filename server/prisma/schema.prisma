@@ -131,7 +131,6 @@ model Ticket {
   actions       ActionTaken[]
 
   @@index([requesterId, createdAt])
-  @@index([ownerId])
   @@index([status])
   @@index([categoryId])
   @@index([ownerId, status])
