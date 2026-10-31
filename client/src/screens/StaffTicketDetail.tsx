@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { apiGet, apiPatch, apiPost, ApiRequestError } from "../api/apiClient";
 import { useAuth } from "../api/authContext";
-import { PriorityBadge, STATUS_LABEL } from "../components/badges";
+import { ActionsTakenPanel } from "../components/ActionsTakenPanel";
+import { PriorityBadge, STATUS_LABEL, StatusBadge } from "../components/badges";
 
 interface StaffTicketDetailDto {
   id: string;
@@ -20,6 +21,7 @@ interface StaffTicketDetailDto {
   resolvedIndicatedByRequester: boolean;
   createdAt: string;
   updatedAt: string;
+  version: number;
 }
 
 interface AssignableOwner {
@@ -55,18 +57,30 @@ interface InternalNoteDto {
 const ROLE_TAG: Record<string, string> = { REQUESTER: "Requester", IT_STAFF: "IT Staff", ADMINISTRATOR: "Administrator" };
 const PRIORITIES = ["LOW", "MEDIUM", "HIGH"];
 
-// ui-spec.md §4: the client-side status list is UX guidance only — the server (Task 19's
-// isValidTransition) is the actual security boundary and rejects anything not truly valid.
+// lab-04 ui-spec.md section 4 / specification 6.1: the client-side status list is UX guidance only; the
+// server's isValidTransition is the security boundary and rejects anything not truly valid.
 const STATUS_OPTIONS: Record<string, string[]> = {
   NEW: ["CANCELLED"],
-  OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
-  IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED"],
+  OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "CANCELLED"],
+  IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
   WAITING_FOR_REQUESTER: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
   RESOLVED: ["CLOSED", "REOPENED"],
   CLOSED: ["REOPENED"],
-  REOPENED: [],
+  REOPENED: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "CANCELLED"],
   CANCELLED: [],
 };
+
+const GATE_MESSAGE = "Record at least one action before resolving.";
+const STALE_MESSAGE = "Someone changed this ticket. Reload to see the latest.";
+
+type TabId = "comments" | "notes" | "attachments" | "actions";
+
+const TABS: { id: TabId; label: string }[] = [
+  { id: "comments", label: "Public Comments" },
+  { id: "notes", label: "Internal Notes" },
+  { id: "attachments", label: "Attachments" },
+  { id: "actions", label: "Actions Taken" },
+];
 
 export function StaffTicketDetail({ ticketId }: { ticketId: string }) {
   const { user } = useAuth();
@@ -77,7 +91,10 @@ export function StaffTicketDetail({ ticketId }: { ticketId: string }) {
   const [notes, setNotes] = useState<InternalNoteDto[]>([]);
   const [newComment, setNewComment] = useState("");
   const [newNote, setNewNote] = useState("");
-  const [conflict, setConflict] = useState<string | null>(null);
+  const [conflict, setConflict] = useState<{ message: string; stale: boolean } | null>(null);
+  const [tab, setTab] = useState<TabId>("comments");
+  const [actionCount, setActionCount] = useState(0);
+  const [reloadKey, setReloadKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   function loadTicket() {
@@ -111,14 +128,30 @@ export function StaffTicketDetail({ ticketId }: { ticketId: string }) {
     if (!ticket) return;
     setConflict(null);
     try {
-      const updated = await apiPatch<StaffTicketDetailDto>(`/api/v1/staff/tickets/${ticketId}${path}`, body);
+      // BR-17: every owner/priority/status write carries the version we last saw; the response carries the new one.
+      const updated = await apiPatch<StaffTicketDetailDto>(`/api/v1/staff/tickets/${ticketId}${path}`, {
+        ...(body as object),
+        expectedVersion: ticket.version,
+      });
       setTicket(updated);
     } catch (err) {
       // BR-18/BR-19: a rejected mutation reverts to the last known-good value — this
       // function never optimistically applies the new value before the response lands,
       // so "reverting" is simply "don't touch state on failure."
-      setConflict(err instanceof ApiRequestError ? err.message : "Unable to save this change right now.");
+      if (err instanceof ApiRequestError && err.code === "STALE_UPDATE") {
+        setConflict({ message: STALE_MESSAGE, stale: true });
+      } else if (err instanceof ApiRequestError && err.code === "RESOLUTION_REQUIRES_ACTION") {
+        setConflict({ message: GATE_MESSAGE, stale: false });
+      } else {
+        setConflict({ message: err instanceof ApiRequestError ? err.message : "Unable to save this change right now.", stale: false });
+      }
     }
+  }
+
+  async function handleReload() {
+    setConflict(null);
+    setReloadKey((k) => k + 1);
+    await loadTicket();
   }
 
   async function handlePostComment(event: FormEvent) {
@@ -164,12 +197,19 @@ export function StaffTicketDetail({ ticketId }: { ticketId: string }) {
 
   return (
     <main className="container py-5">
-      <h1 className="h4 mb-3">{ticket.ticketNumber}</h1>
+      <h1 className="h4 mb-3">
+        {ticket.ticketNumber} <StatusBadge value={ticket.status} />
+      </h1>
 
       {conflict && (
-        <p role="alert" className="zg-error-callout text-danger">
-          {conflict}
-        </p>
+        <div role="alert" className="zg-error-callout text-danger">
+          <p className="mb-0">{conflict.message}</p>
+          {conflict.stale && (
+            <button type="button" className="mt-2" onClick={handleReload}>
+              Reload
+            </button>
+          )}
+        </div>
       )}
 
       <section className="zg-card">
@@ -248,7 +288,7 @@ export function StaffTicketDetail({ ticketId }: { ticketId: string }) {
               <option value={ticket.status}>{STATUS_LABEL[ticket.status] ?? ticket.status}</option>
               {(STATUS_OPTIONS[ticket.status] ?? []).map((s) => (
                 <option key={s} value={s}>
-                  {s}
+                  {STATUS_LABEL[s] ?? s}
                 </option>
               ))}
             </select>
@@ -256,7 +296,29 @@ export function StaffTicketDetail({ ticketId }: { ticketId: string }) {
         </div>
       </section>
 
-      <section data-testid="public-comments-panel" className="zg-comments-panel">
+      <div role="tablist" aria-label="Ticket activity" className="d-flex flex-wrap gap-2 mt-3">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            id={`tab-${t.id}`}
+            aria-selected={tab === t.id}
+            aria-controls={`panel-${t.id}`}
+            className={tab === t.id ? "zg-primary-button" : undefined}
+            onClick={() => setTab(t.id)}
+          >
+            {t.label}
+            {t.id === "actions" && (
+              <span className="badge zg-badge zg-status-badge-open ms-2" aria-label={`${actionCount} actions`}>
+                {actionCount}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      <section role="tabpanel" id="panel-comments" aria-labelledby="tab-comments" hidden={tab !== "comments"} data-testid="public-comments-panel" className="zg-comments-panel">
         <h2 className="h6">Public Comments</h2>
         {comments.length === 0 && <p>No comments yet.</p>}
         <ul className="list-unstyled">
@@ -279,7 +341,7 @@ export function StaffTicketDetail({ ticketId }: { ticketId: string }) {
         </form>
       </section>
 
-      <section data-testid="internal-notes-panel" className="zg-notes-panel">
+      <section role="tabpanel" id="panel-notes" aria-labelledby="tab-notes" hidden={tab !== "notes"} data-testid="internal-notes-panel" className="zg-notes-panel">
         <p className="zg-notes-panel-label">Internal — not visible to Requester</p>
         <h2 className="h6">Internal Notes</h2>
         {notes.length === 0 && <p>No internal notes yet.</p>}
@@ -303,7 +365,7 @@ export function StaffTicketDetail({ ticketId }: { ticketId: string }) {
         </form>
       </section>
 
-      <section data-testid="staff-attachments-panel" className="zg-card">
+      <section role="tabpanel" id="panel-attachments" aria-labelledby="tab-attachments" hidden={tab !== "attachments"} data-testid="staff-attachments-panel" className="zg-card">
         <h2 className="h6">Attachments</h2>
         {attachments.length === 0 && <p>No attachments.</p>}
         <ul className="list-unstyled">
@@ -313,6 +375,10 @@ export function StaffTicketDetail({ ticketId }: { ticketId: string }) {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section role="tabpanel" id="panel-actions" aria-labelledby="tab-actions" hidden={tab !== "actions"}>
+        <ActionsTakenPanel key={reloadKey} ticketId={ticketId} currentUser={user!} onCountChange={setActionCount} />
       </section>
     </main>
   );

@@ -24,12 +24,18 @@ export interface ActionInput {
   actionAt: string;
 }
 
+async function listActions(path: string): Promise<ActionDto[]> {
+  const result = await apiGet<ActionDto[]>(path);
+  if (!Array.isArray(result)) throw new Error("Unexpected actions response");
+  return result;
+}
+
 export function listStaffActions(ticketId: string) {
-  return apiGet<ActionDto[]>(`/api/v1/staff/tickets/${ticketId}/actions`);
+  return listActions(`/api/v1/staff/tickets/${ticketId}/actions`);
 }
 
 export function listRequesterActions(ticketId: string) {
-  return apiGet<ActionDto[]>(`/api/v1/tickets/${ticketId}/actions`);
+  return listActions(`/api/v1/tickets/${ticketId}/actions`);
 }
 
 export function createAction(ticketId: string, input: ActionInput, idempotencyKey: string) {

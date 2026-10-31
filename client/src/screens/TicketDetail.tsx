@@ -1,6 +1,7 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { apiGet, apiPost, apiPatch } from "../api/apiClient";
 import { PriorityBadge, StatusBadge } from "../components/badges";
+import { RequesterActionsSection } from "../components/RequesterActionsSection";
 
 interface TicketDto {
   id: string;
@@ -15,6 +16,7 @@ interface TicketDto {
   resolvedIndicatedByRequester?: boolean;
   createdAt: string;
   updatedAt: string;
+  version?: number;
 }
 
 interface AttachmentDto {
@@ -340,6 +342,8 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
           </form>
         </div>
       </section>
+
+      <RequesterActionsSection ticketId={ticketId} />
     </main>
   );
 }
