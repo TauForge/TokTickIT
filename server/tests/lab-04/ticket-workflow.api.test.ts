@@ -60,10 +60,13 @@ describe("API-11: advisory flag is not resolution (AC-12, BR-14)", () => {
   it("flag leaves status unchanged and the gate still returns 409", async () => {
     const t = await newTicket("Lab4 advisory fixture");
     await setStatus(t, "IN_PROGRESS");
+    const before = await versionOf(t);
     const flag = await request(app).patch(`/api/v1/tickets/${t}/resolved-indication`).set("Cookie", jennifer).send({});
     expect(flag.status).toBe(200);
     expect(flag.body.status).toBe("IN_PROGRESS");
 
+    // Review on PR #50: the advisory flag must not bump version (BR-16).
+    expect(await versionOf(t)).toBe(before);
     const v = await versionOf(t);
     const gate = await request(app).patch(url(t, "status")).set("Cookie", amy).send({ status: "RESOLVED", expectedVersion: v });
     expect(gate.status).toBe(409);
@@ -188,5 +191,25 @@ describe("version exposure (AC-15)", () => {
     expect(list.body.data[0].version).toBe(0);
     const mine = await request(app).get(`/api/v1/tickets/${t}`).set("Cookie", jennifer);
     expect(mine.body.version).toBe(0);
+  });
+});
+
+describe("API-26: gate and status write share one transaction (review on PR #50)", () => {
+  it("racing Action create against move to RESOLVED never leaves a RESOLVED ticket with zero Actions", async () => {
+    const ids = await Promise.all(Array.from({ length: 8 }, (_, i) => newTicket(`Lab4 gate race fixture ${i}`)));
+    await Promise.all(ids.map((t) => setStatus(t, "IN_PROGRESS")));
+    const versions = await Promise.all(ids.map((t) => versionOf(t)));
+    const actionBody = { description: "Racing action", result: "Recorded" };
+    await Promise.all(
+      ids.flatMap((t, i) => [
+        request(app).post(`/api/v1/staff/tickets/${t}/actions`).set("Cookie", amy).send(actionBody),
+        request(app).patch(url(t, "status")).set("Cookie", amy).send({ status: "RESOLVED", expectedVersion: versions[i] }),
+      ]),
+    );
+    for (const t of ids) {
+      const ticket = await prisma.ticket.findUniqueOrThrow({ where: { id: t } });
+      const actions = await prisma.actionTaken.count({ where: { ticketId: t } });
+      if (ticket.status === "RESOLVED") expect(actions).toBeGreaterThanOrEqual(1);
+    }
   });
 });
