@@ -52,7 +52,7 @@ Final column starts as "Planned" and changes only after the suite has actually r
 | UI-03 | UI | FR-15, AC-20, AC-29 | Staff dashboard cards, links, states | per state | client/tests/lab-04/StaffDashboard.test.tsx | Pass (12 tests, 2026-10-31) |
 | UI-04 | UI | FR-14, AC-02 | Requester dashboard cards, links, states | per state | client/tests/lab-04/RequesterDashboard.test.tsx | Pass (9 tests, 2026-10-31) |
 | STYLE-01 | UI style | ui-spec | Zen Green classes, badges, no ad hoc styling | present | client/tests/lab-04/zenGreenStyleLab4.test.tsx | Pass (6 tests, 2026-10-31) |
-| A11Y-01 | Accessibility | AC-28 | aria-current, labels, live region, focus, text status cues | present | client/tests/lab-04/accessibility.test.tsx | Pass (8 tests, 2026-10-31) |
+| A11Y-01 | Accessibility | AC-28 | aria-current, labels, live region, focus, text status cues | present | client/tests/lab-04/accessibility.test.tsx | Pass (10 tests; the Retry focus test documents the behaviour and also passes without the source change in jsdom, so it does not by itself prove the fix) |
 | VISUAL-01 | Responsive/visual | AC-27 | 3 viewports, no overflow, screenshots saved | saved, checklist true | e2e/lab-04/dashboards.spec.ts | Partial: 9 screenshots saved and all viewed, overflow asserted at 1280/820/390; validation placement and keyboard focus ring not yet evidenced in screenshots (section 4) |
 | E2E-01 | E2E | AC-01, AC-03, AC-25 | staff adds, edits Actions; Requester sees them | full flow | e2e/lab-04/actions-taken-flow.spec.ts | Pass (2026-10-31) |
 | E2E-02 | E2E | AC-11, AC-14, AC-15 | resolve gate, reopen, stale conflict between two sessions | full flow | e2e/lab-04/ticket-resolution.spec.ts | Pass (2 tests incl. two-session stale conflict, 2026-10-31) |

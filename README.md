@@ -4,7 +4,7 @@ TokTickIT is an IT service desk application being built through the CPE334 indiv
 
 ## Project status
 
-TokTickIT is an IT service desk application built across four CPE334 sprints. The main branch contains:
+TokTickIT is an IT service desk application built across four CPE334 sprints. By the end of Lab 4 the application contains:
 
 - **Lab 1:** React + TypeScript + Vite frontend, Node.js + Express + TypeScript backend, PostgreSQL with Prisma, `GET /api/health`, and the category list.
 - **Lab 2:** Requester ticketing: create tickets, My Tickets, Ticket Detail, attachments, and public comments.
