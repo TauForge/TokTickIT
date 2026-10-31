@@ -186,7 +186,7 @@ staffTicketsRouter.patch("/:id/priority", ...staffGate, async (req, res, next) =
       throw new HttpError(422, "VALIDATION_FAILED", "One or more fields are invalid", validation.errors);
     }
 
-    const ticket = await prisma.ticket.findUnique({ where: { id: req.params.id } });
+    const ticket = await prisma.ticket.findUnique({ where: { id: String(req.params.id) } });
     if (!ticket) throw new HttpError(404, "NOT_FOUND", "Ticket not found");
     if (isTerminal(ticket.status as TicketStatus)) {
       throw new HttpError(409, "TICKET_LOCKED", "This ticket is locked and its priority cannot change");
@@ -211,7 +211,7 @@ staffTicketsRouter.patch("/:id/status", ...staffGate, async (req, res, next) => 
       throw new HttpError(422, "VALIDATION_FAILED", "One or more fields are invalid", validation.errors);
     }
 
-    const ticket = await prisma.ticket.findUnique({ where: { id: req.params.id } });
+    const ticket = await prisma.ticket.findUnique({ where: { id: String(req.params.id) } });
     if (!ticket) throw new HttpError(404, "NOT_FOUND", "Ticket not found");
 
     const from = ticket.status as TicketStatus;

@@ -63,6 +63,7 @@ model User {
   sessions      Session[]
   comments      Comment[]
   internalNotes InternalNote[]
+  actionsTaken  ActionTaken[]
 }
 
 model Session {
@@ -113,6 +114,7 @@ model Ticket {
   resolvedIndicatedByRequester Boolean      @default(false)
   createdAt                    DateTime     @default(now())
   updatedAt                    DateTime     @updatedAt
+  version                      Int          @default(0)
 
   requesterId     Int
   requester       User           @relation("TicketRequester", fields: [requesterId], references: [id], onDelete: Restrict)
@@ -126,11 +128,33 @@ model Ticket {
   attachments   Attachment[]
   comments      Comment[]
   internalNotes InternalNote[]
+  actions       ActionTaken[]
 
   @@index([requesterId, createdAt])
   @@index([ownerId])
   @@index([status])
   @@index([categoryId])
+}
+
+model ActionTaken {
+  id               String   @id @default(uuid())
+  ticketId         String
+  ticket           Ticket   @relation(fields: [ticketId], references: [id], onDelete: Restrict)
+  performedById    Int
+  performedBy      User     @relation(fields: [performedById], references: [id], onDelete: Restrict)
+  actionAt         DateTime
+  description      String   @db.VarChar(2000)
+  result           String   @db.VarChar(1000)
+  followUpRequired Boolean  @default(false)
+  followUpNote     String?  @db.VarChar(1000)
+  attachmentNotes  String?  @db.VarChar(500)
+  idempotencyKey   String?  @db.VarChar(64)
+  version          Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([performedById, idempotencyKey])
+  @@index([ticketId, actionAt, id])
 }
 
 model Attachment {

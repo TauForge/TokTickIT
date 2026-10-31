@@ -15,6 +15,7 @@ import { staffCommentsRouter } from "./routes/staffComments";
 import { staffNotesRouter } from "./routes/staffNotes";
 import { staffTicketsRouter } from "./routes/staffTickets";
 import { staffAttachmentsRouter } from "./routes/staffAttachments";
+import { requesterActionsRouter, staffActionsRouter } from "./routes/actions";
 import { adminUsersRouter } from "./routes/adminUsers";
 import { errorEnvelope } from "./middleware/errorEnvelope";
 
@@ -46,6 +47,7 @@ app.use("/api/related-systems", relatedSystemsRouter);
 app.use("/api/v1/tickets/:ticketId/attachments", attachmentsRouter);
 app.use("/api/v1/tickets/:ticketId/comments", commentsRouter);
 app.use("/api/v1/attachments", attachmentActionsRouter);
+app.use("/api/v1/tickets/:ticketId/actions", requesterActionsRouter);
 app.use("/api/v1/tickets", ticketsRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/me", meRouter);
@@ -53,6 +55,7 @@ app.use("/api/v1/staff/assignable-owners", staffAssignableOwnersRouter);
 app.use("/api/v1/staff/tickets/:ticketId/comments", staffCommentsRouter);
 app.use("/api/v1/staff/tickets/:ticketId/notes", staffNotesRouter);
 app.use("/api/v1/staff/tickets/:ticketId/attachments", staffAttachmentsRouter);
+app.use("/api/v1/staff/tickets/:ticketId/actions", staffActionsRouter);
 app.use("/api/v1/staff/tickets", staffTicketsRouter);
 app.use("/api/v1/admin/users", adminUsersRouter);
 
