@@ -15,17 +15,29 @@ review workflow, and I made it check its own work against the handout twice befo
 | 7 | "I don't understand what I should do next." | Making sure I understand the process, not just receive output | The remaining work is mostly mine: running the app, checking screenshots, the peer review with my friend, and writing this reflection |
 
 ## My Reflection
-Draft to edit into my own words before submitting.
+I used Claude as the specification agent and the coding agent, and I treated it as a tool I had to direct and check,
+not something that finishes the lab for me. The most useful things I did were small: asking "is everything as the file
+requires?" twice, and asking for a full recheck against the PDF after the build. The first plan missed handout items,
+and the recheck found that my specification had 12 sections where the handout fixes 11. Each time, the AI only found
+the gap because I made it compare against the source document again.
 
-Specification agent: I did not accept the first plan. Asking "is everything as the file requires" twice found gaps
-that a plain read missed, such as the dashboard mockups and the wording about assignees. The agent was good at turning
-the handout into numbered rules and tests, but it only caught problems when I asked it to check again against the
-PDF. The final check also found a structure mismatch with the handout's 11 required sections.
+Specification agent: it was fast at turning the handout into numbered rules, a status matrix and a test plan, and
+writing the contract before the code made every test traceable to an acceptance criterion. What I learned is that it
+reads ambiguous handout wording literally. The handout talks about assigning, completing and cancelling Actions, and I
+had to decide what those mean in this design instead of letting it guess.
 
-Coding agent: each task was built with tests written first, then an implementation, then a full test run. Two honest
-limits: in the workflow task the new tests were written after the code, so I did not see them fail first, and the
-agent made a few choices I only learned about from its report, such as treating Closed tickets as locked for Actions.
-I should verify those choices rather than trust them.
+Coding agent: it wrote tests first for most tasks, but not all. In the workflow task the tests were written after the
+code, so I did not see them fail first, and I recorded that instead of hiding it. The bigger lesson came from peer
+review. My friend found real bugs in code that passed all of the AI's own tests: a ticket status check that was not in
+the same transaction as the write, an idempotency key that was not scoped to its ticket, and a Reload button that let a
+user silently overwrite someone else's edit. I would not have caught these by reading the green test output. Reviewing
+the AI's code is a separate job from running its tests.
 
-What I would do differently: read each task report before starting the next one, run the app myself after every
-task, and keep the review pull requests smaller so my friend can review them properly.
+What I learned about the workflow: stacked pull requests keep each review small, but each merge needs the next PR
+retargeted to the staging branch (or the merged branch deleted), and a PR into a staging branch is not linked to its
+issue until the release PR into main merges. My friend also pointed out that each PR should be bound to its issue, so
+the release PR lists every issue it closes.
+
+What I would do differently: read every task report before starting the next one, run the app myself after each task,
+and ask the AI to write the failing test before the fix for every review comment, which is what I did after the
+review of the first pull request.
