@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { useAuth } from "../api/authContext";
 import { apiGet, ApiRequestError } from "../api/apiClient";
 import { PriorityBadge, StatusBadge } from "../components/badges";
 
@@ -26,13 +27,20 @@ const STATUSES = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLV
 const PRIORITIES = ["LOW", "MEDIUM", "HIGH"];
 
 export function StaffTicketQueue() {
+  const { user } = useAuth();
+  // Dashboard drill-down links (specification 6.3) arrive as ?status=&itPriority=&ownerId=&activeOnly=true.
+  const [initial] = useSearchParams();
   const [result, setResult] = useState<StaffTicketPage | null>(null);
   const [forbidden, setForbidden] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
-  const [itPriority, setItPriority] = useState("");
-  const [ownerId, setOwnerId] = useState("");
+  const [status, setStatus] = useState(() => (STATUSES.includes(initial.get("status") ?? "") ? initial.get("status")! : ""));
+  const [itPriority, setItPriority] = useState(() => (PRIORITIES.includes(initial.get("itPriority") ?? "") ? initial.get("itPriority")! : ""));
+  const [ownerId, setOwnerId] = useState(() => {
+    const raw = initial.get("ownerId") ?? "";
+    return raw === "unassigned" || /^\d+$/.test(raw) ? raw : "";
+  });
+  const [activeOnly, setActiveOnly] = useState(() => initial.get("activeOnly") === "true");
   const [sort, setSort] = useState<"createdAt" | "updatedAt">("createdAt");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
@@ -43,6 +51,7 @@ export function StaffTicketQueue() {
     if (status) params.set("status", status);
     if (itPriority) params.set("itPriority", itPriority);
     if (ownerId) params.set("ownerId", ownerId);
+    if (activeOnly) params.set("activeOnly", "true");
 
     apiGet<StaffTicketPage>(`/api/v1/staff/tickets?${params.toString()}`)
       .then((response) => {
@@ -57,13 +66,14 @@ export function StaffTicketQueue() {
           setError("Unable to load the ticket queue right now. Please try again.");
         }
       });
-  }, [search, status, itPriority, ownerId, sort, order, page]);
+  }, [search, status, itPriority, ownerId, activeOnly, sort, order, page]);
 
   function clearFilters() {
     setSearch("");
     setStatus("");
     setItPriority("");
     setOwnerId("");
+    setActiveOnly(false);
     setPage(1);
   }
 
@@ -91,7 +101,7 @@ export function StaffTicketQueue() {
     );
   }
 
-  const hasAnyFilter = Boolean(search || status || itPriority || ownerId);
+  const hasAnyFilter = Boolean(search || status || itPriority || ownerId || activeOnly);
 
   return (
     <main className="container py-5">
@@ -170,7 +180,24 @@ export function StaffTicketQueue() {
           >
             <option value="">All Owners</option>
             <option value="unassigned">No Owner</option>
+            {user && <option value={String(user.id)}>Assigned to Me</option>}
+            {/^\d+$/.test(ownerId) && ownerId !== String(user?.id) && <option value={ownerId}>Selected Owner</option>}
           </select>
+        </div>
+        <div className="col-auto form-check">
+          <input
+            id="staff-queue-active-only"
+            type="checkbox"
+            className="form-check-input"
+            checked={activeOnly}
+            onChange={(e) => {
+              setPage(1);
+              setActiveOnly(e.target.checked);
+            }}
+          />
+          <label htmlFor="staff-queue-active-only" className="form-check-label">
+            Active tickets only
+          </label>
         </div>
         <div className="col-auto">
           <label htmlFor="staff-queue-sort" className="form-label">

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { apiGet } from "../api/apiClient";
-import { PriorityBadge, StatusBadge } from "../components/badges";
+import { PriorityBadge, STATUS_LABEL, StatusBadge } from "../components/badges";
 
 interface TicketRow {
   id: string;
@@ -29,15 +29,45 @@ interface Category {
 }
 
 const PRIORITIES = ["LOW", "MEDIUM", "HIGH"];
+const STATUSES = Object.keys(STATUS_LABEL);
+const CLIENT_PAGE_SIZE = 10;
+const FETCH_PAGE_SIZE = 50;
+
+// The server list endpoint only filters on status NEW, so any other status (from the dashboard
+// drill-down links or the select) is filtered here: fetch every page, filter, then paginate.
+async function fetchFilteredByStatus(params: URLSearchParams, status: string, page: number): Promise<TicketListResponse> {
+  const rows: TicketRow[] = [];
+  let next = 1;
+  let totalPages = 1;
+  do {
+    const p = new URLSearchParams(params);
+    p.set("page", String(next));
+    p.set("pageSize", String(FETCH_PAGE_SIZE));
+    const response = await apiGet<TicketListResponse>(`/api/v1/tickets?${p.toString()}`);
+    rows.push(...response.items.filter((t) => t.status === status));
+    totalPages = response.totalPages;
+    next += 1;
+  } while (next <= totalPages);
+  const pages = Math.max(1, Math.ceil(rows.length / CLIENT_PAGE_SIZE));
+  const current = Math.min(page, pages);
+  return {
+    items: rows.slice((current - 1) * CLIENT_PAGE_SIZE, current * CLIENT_PAGE_SIZE),
+    page: current,
+    pageSize: CLIENT_PAGE_SIZE,
+    totalItems: rows.length,
+    totalPages: pages,
+  };
+}
 
 export function MyTickets() {
+  const [initial] = useSearchParams();
   const [data, setData] = useState<TicketListResponse | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [requestedPriority, setRequestedPriority] = useState("");
   const [itPriority, setItPriority] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState(() => (STATUSES.includes(initial.get("status") ?? "") ? initial.get("status")! : ""));
   const [sort, setSort] = useState<"createdAt" | "updatedAt">("createdAt");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
@@ -55,9 +85,13 @@ export function MyTickets() {
     if (categoryId) params.set("categoryId", categoryId);
     if (requestedPriority) params.set("requestedPriority", requestedPriority);
     if (itPriority) params.set("itPriority", itPriority);
-    if (status) params.set("status", status);
+    if (status === "NEW") params.set("status", status);
 
-    apiGet<TicketListResponse>(`/api/v1/tickets?${params.toString()}`)
+    const request =
+      status && status !== "NEW"
+        ? (params.delete("page"), fetchFilteredByStatus(params, status, page))
+        : apiGet<TicketListResponse>(`/api/v1/tickets?${params.toString()}`);
+    request
       .then((response) => {
         setData(response);
         setError(null);
@@ -194,7 +228,11 @@ export function MyTickets() {
             }}
           >
             <option value="">All Statuses</option>
-            <option value="NEW">New</option>
+            {STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {STATUS_LABEL[s]}
+              </option>
+            ))}
           </select>
         </div>
 
