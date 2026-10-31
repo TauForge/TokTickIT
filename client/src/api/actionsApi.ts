@@ -21,7 +21,8 @@ export interface ActionInput {
   followUpRequired: boolean;
   followUpNote: string | null;
   attachmentNotes: string | null;
-  actionAt: string;
+  // Omitted on edit unless the user changed the field, so saving never rewrites the stored seconds.
+  actionAt?: string;
 }
 
 async function listActions(path: string): Promise<ActionDto[]> {

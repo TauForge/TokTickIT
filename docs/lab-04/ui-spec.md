@@ -44,7 +44,9 @@ Attachments, shown with a count badge.
 - **View/edit mode:** selecting a row shows details; "Edit" is enabled only for the performer or an Administrator,
   otherwise it is visibly disabled with the tooltip "Only the person who recorded this action or an Administrator
   can edit it." Save sends `expectedVersion`; a stale result shows an inline callout "Someone changed this. Reload
-  to see the latest." with a Reload action and keeps the user's typed text.
+  to see the latest." with a Reload action. Reload resets the form to the latest saved values (so Save can never replace
+  someone else's edit unseen) and keeps what the user had typed in a visible "unsaved text" list. Edit sends `actionAt`
+  only when that field was changed. Owner, priority and status controls are disabled while one of those writes is in flight.
 - No delete control exists anywhere.
 - Validation errors appear under the field and in a summary linked to the first error; entered data is kept.
 Requester Ticket Detail gets the same list read-only (no Add, no Edit), titled "Actions Taken".
