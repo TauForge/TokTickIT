@@ -72,8 +72,8 @@ targets at least 44px; no horizontal page scroll; contrast at least 4.5:1.
 - [x] Theme tokens and badge system match Lab 2/3 on both dashboards and the Actions Taken area
 - [x] Role navigation correct for Requester, IT Staff, Administrator; active page indicated
 - [x] Editable vs read-only fields visually distinct
-- [ ] Validation messages placed under fields and summarized
-- [ ] Keyboard focus visible and logical on cards, forms, tabs
+- [x] Validation messages placed under fields and summarized
+- [x] Keyboard focus visible and logical on cards, forms, tabs
 - [x] No clipped text, overlapping controls or hidden buttons at 390/820/1280
 - [x] No horizontal overflow at 390
 - [x] Status never conveyed by color alone
@@ -82,3 +82,5 @@ targets at least 44px; no horizontal page scroll; contrast at least 4.5:1.
 artifacts/lab-04/screenshots/staff-dashboard/{desktop,tablet,mobile}.png
 artifacts/lab-04/screenshots/requester-dashboard/{desktop,tablet,mobile}.png
 artifacts/lab-04/screenshots/actions-taken/{desktop,tablet,mobile}.png
+artifacts/lab-04/screenshots/actions-taken/validation-errors.png
+artifacts/lab-04/screenshots/staff-dashboard/keyboard-focus-ring.png

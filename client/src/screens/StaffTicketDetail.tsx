@@ -257,7 +257,8 @@ export function StaffTicketDetail({ ticketId }: { ticketId: string }) {
               <option value="" disabled>
                 Unassigned
               </option>
-              {ticket.ownerId !== user!.id && <option value={user!.id}>Claim for myself</option>}
+              {/* The signed-in user is always listed once: as their own name when they own the Ticket, else as a claim shortcut. */}
+              <option value={user!.id}>{ticket.ownerId === user!.id ? user!.displayName : "Claim for myself"}</option>
               {owners
                 .filter((o) => o.id !== user!.id)
                 .map((o) => (

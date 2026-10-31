@@ -75,4 +75,12 @@ describe("Lab 4 Zen Green style verification (STYLE-01)", () => {
     expect(css).toMatch(/\.zg-app-header nav a\[aria-current="page"\]/);
     expect(css).toMatch(/:focus-visible/);
   });
+
+  it("checkboxes and radios keep a normal control size inside cards (STYLE-02)", () => {
+    const rule = css.match(/\.zg-card input\[type="checkbox"\][^{]*\{[^}]*\}/)?.[0] ?? "";
+    expect(rule).toMatch(/width:\s*1\.25rem|width:\s*\d+px/);
+    expect(rule).toMatch(/height:\s*1\.25rem|height:\s*\d+px/);
+    expect(rule).toMatch(/padding:\s*0/);
+    expect(rule).toContain("var(--zg-");
+  });
 });

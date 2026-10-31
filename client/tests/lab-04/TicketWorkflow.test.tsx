@@ -14,6 +14,26 @@ describe("Ticket workflow feedback (UI-02)", () => {
     vi.unstubAllGlobals();
   });
 
+  it("Ticket Owner select shows the signed-in user when they own the Ticket", async () => {
+    routeFetch(amy, [
+      on("GET", /\/staff\/assignable-owners$/, () => ({
+        body: [
+          { id: 1, displayName: "Admin User" },
+          { id: 2, displayName: "Amy Tran" },
+          { id: 3, displayName: "Ben Cole" },
+        ],
+      })),
+      ...base({ ...staffTicket, ownerId: 2, ownerDisplayName: "Amy Tran" }),
+    ]);
+
+    renderStaffDetail();
+    await screen.findByText("TKT-2026-000001");
+
+    const select = screen.getByLabelText(/ticket owner/i) as HTMLSelectElement;
+    await waitFor(() => expect(select.selectedOptions[0]?.textContent).toMatch(/Amy Tran/));
+    expect(select).toHaveValue("2");
+  });
+
   it("status select offers only the permitted next statuses (plus the current one)", async () => {
     routeFetch(amy, base({ ...staffTicket, status: "OPEN" }));
 
