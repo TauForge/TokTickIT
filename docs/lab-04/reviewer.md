@@ -17,7 +17,7 @@ the previous branch; after a merge the next PR's base was moved to `lab4-staging
 | [#54](https://github.com/TauForge/TokTickIT/pull/54) | lab4-10f-hardening | Bank848 | 6 | stale README, a test that could not fail, E2E not checking the filtered list, VISUAL-01 marked Pass too early, server changes in a hardening PR, draft reflection | fixed in 66788ff and 310acac: README rewritten, E2E asserts filtered rows, VISUAL-01 set to Partial, behaviour changes listed in the PR description, reflection written | Approved, merged 2026-10-31 |
 | [#55](https://github.com/TauForge/TokTickIT/pull/55) | lab4-staging into `main` | Bank848 | 1 (checked the diff equals the six approved PRs, Closes lines work) plus 1 wording note | reviewer.md called three comment reviews "changes requested" | fixed in 5fc1274 | Approved, merged 2026-10-31; issues #41 to #48 closed automatically |
 | [#56](https://github.com/TauForge/TokTickIT/pull/56) | lab4-final-polish | Bank848 | 1 (approved after checking the owner-select and checkbox fixes against their tests) | none to fix | n/a | Approved, merged 2026-10-31 |
-| [#57](https://github.com/TauForge/TokTickIT/pull/57) | lab4-staging into `main` (final) | Bank848 | pending | pending | pending | pending |
+| [#57](https://github.com/TauForge/TokTickIT/pull/57) | lab4-staging into `main` (final) | Bank848 | 1 (approved: the same content as #55 and #56, nothing new to fix) | none to fix | n/a | Approved, merged 2026-10-31 |
 
 Every review was posted as a comment review first and, after the fixes were checked against the named commit, an
 approval. The full text of each review and reply is on the linked PR pages.
