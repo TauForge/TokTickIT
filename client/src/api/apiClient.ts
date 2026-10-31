@@ -9,14 +9,24 @@ export interface FieldError {
 }
 
 interface ApiErrorPayload {
-  error?: { message?: string; fieldErrors?: FieldError[] };
+  error?: { code?: string; message?: string; fieldErrors?: FieldError[]; currentVersion?: number };
 }
 
 export class ApiRequestError extends Error {
   fieldErrors: FieldError[];
-  constructor(message: string, fieldErrors: FieldError[] = []) {
+  code: string | null;
+  status: number;
+  currentVersion: number | null;
+  constructor(
+    message: string,
+    fieldErrors: FieldError[] = [],
+    meta: { code?: string | null; status?: number; currentVersion?: number | null } = {},
+  ) {
     super(message);
     this.fieldErrors = fieldErrors;
+    this.code = meta.code ?? null;
+    this.status = meta.status ?? 0;
+    this.currentVersion = meta.currentVersion ?? null;
   }
 }
 
@@ -25,6 +35,7 @@ async function throwFromErrorResponse(response: Response): Promise<never> {
   throw new ApiRequestError(
     body?.error?.message ?? `Request failed with ${response.status}`,
     body?.error?.fieldErrors ?? [],
+    { code: body?.error?.code, status: response.status, currentVersion: body?.error?.currentVersion },
   );
 }
 
@@ -34,11 +45,11 @@ export async function apiGet<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+export async function apiPost<T>(path: string, body: unknown, extraHeaders: Record<string, string> = {}): Promise<T> {
   const response = await fetch(`${apiBaseUrl}${path}`, {
     method: "POST",
     credentials: "include",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...extraHeaders },
     body: JSON.stringify(body),
   });
   if (!response.ok) return throwFromErrorResponse(response);
