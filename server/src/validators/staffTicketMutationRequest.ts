@@ -46,3 +46,9 @@ export function validateStatusRequest(body: unknown): StatusValidationResult {
   }
   return { ok: true, value: { status: status as TicketStatus } };
 }
+
+// BR-17: owner, priority and status writes must carry a non-negative integer expectedVersion.
+export function parseExpectedVersion(body: unknown): number | null {
+  const ev = ((body ?? {}) as Record<string, unknown>).expectedVersion;
+  return typeof ev === "number" && Number.isInteger(ev) && ev >= 0 ? ev : null;
+}

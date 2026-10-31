@@ -16,6 +16,11 @@ async function createTicket(): Promise<string> {
   return response.body.id;
 }
 
+
+async function versionOf(id: string): Promise<number> {
+  return (await prisma.ticket.findUniqueOrThrow({ where: { id } })).version;
+}
+
 beforeAll(async () => {
   const staffLogin = await request(app).post("/api/v1/auth/login").send({ email: "amy.tran@toktickit.dev", password: "DevPass123!" });
   staffCookie = staffLogin.headers["set-cookie"];
@@ -49,7 +54,7 @@ describe("PATCH /api/v1/staff/tickets/:id/owner", () => {
     const response = await request(app)
       .patch(`/api/v1/staff/tickets/${ticketId}/owner`)
       .set("Cookie", staffCookie)
-      .send({ ownerId: staffUserId });
+      .send({ ownerId: staffUserId, expectedVersion: await versionOf(ticketId) });
 
     expect(response.status).toBe(200);
     expect(response.body.ownerId).toBe(staffUserId);
@@ -62,7 +67,7 @@ describe("PATCH /api/v1/staff/tickets/:id/owner", () => {
     const response = await request(app)
       .patch(`/api/v1/staff/tickets/${ticketId}/owner`)
       .set("Cookie", staffCookie)
-      .send({ ownerId: requester.id });
+      .send({ ownerId: requester.id, expectedVersion: await versionOf(ticketId) });
 
     expect(response.status).toBe(409);
     expect(response.body.error.code).toBe("INVALID_OWNER");

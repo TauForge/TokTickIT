@@ -14,7 +14,7 @@ Final column starts as "Planned" and changes only after the suite has actually r
 | SEED-01 | Migration | AC-24, BR-24 | seed run twice | identical counts, no duplicates, covers all statuses/priorities/0-1-many Actions | server/tests/lab-04/seed.test.ts | Pass (4 tests, seed run twice, 2026-10-31) |
 | UNIT-01 | Unit | BR-05, BR-06 | action input validator | length limits, follow-up note rule both ways | server/tests/lab-04/actionValidation.test.ts | Pass (8 tests, 2026-10-31) |
 | UNIT-02 | Unit | BR-04 | action date window | rejects future (>5 min) and before ticket creation | server/tests/lab-04/actionValidation.test.ts | Pass (3 tests, 2026-10-31) |
-| UNIT-03 | Unit | 6.1, AC-13, AC-14 | transition matrix over all 64 pairs | exactly the listed pairs valid | server/tests/lab-04/ticketTransitions.test.ts | Planned |
+| UNIT-03 | Unit | 6.1, AC-13, AC-14 | transition matrix over all 64 pairs | exactly the listed pairs valid | server/tests/lab-04/ticketTransitions.test.ts | Pass (64 pairs, 2026-10-31) |
 | API-01 | API | AC-01, BR-03 | create Action as IT Staff | saved under Ticket, performer = session, body performer ignored | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
 | API-02 | API | AC-03, BR-02 | non-owner staff creates Action | 201, Ticket owner unchanged | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
 | API-03 | API | AC-04, AC-05 | follow-up rule | 422 both directions | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
@@ -26,13 +26,14 @@ Final column starts as "Planned" and changes only after the suite has actually r
 | API-09 | API | AC-17, BR-18 | same Idempotency-Key twice | one row, second 200 original | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
 | API-24 | API | AC-17, BR-18 | same key on a different Ticket (PR #49 review) | 409 IDEMPOTENCY_KEY_REUSED, no row on second Ticket | server/tests/lab-04/actions-taken.api.test.ts | Pass |
 | API-25 | API | AC-18, BR-09 | Ticket closes while create/edit is in flight (PR #49 review) | 409 TICKET_LOCKED, nothing written | server/tests/lab-04/actions-taken.api.test.ts | Pass |
-| API-10 | API | AC-11, BR-13 | resolve with 0 then 1 Action | 409 then 200 | server/tests/lab-04/ticket-workflow.api.test.ts | Planned |
-| API-11 | API | AC-12, BR-14 | advisory flag does not resolve or pass gate | status unchanged, gate still 409 | server/tests/lab-04/ticket-workflow.api.test.ts | Planned |
-| API-12 | API | AC-13 | every status pair through PATCH | valid 200, others 409 correct code | server/tests/lab-04/ticket-workflow.api.test.ts | Planned |
-| API-13 | API | AC-14 | REOPENED to IN_PROGRESS | 200 | server/tests/lab-04/ticket-workflow.api.test.ts | Planned |
-| API-14 | API | AC-15, BR-17 | stale status after priority change | 409 STALE_UPDATE with currentVersion, unchanged | server/tests/lab-04/ticket-workflow.api.test.ts | Planned |
-| API-15 | API | AC-16 | missing expectedVersion on owner/priority/status/Action PATCH | 422 VERSION_REQUIRED | server/tests/lab-04/ticket-workflow.api.test.ts | Planned |
-| API-16 | API | BR-15 | Requester status write | 403 | server/tests/lab-04/ticket-workflow.api.test.ts | Planned |
+| API-10 | API | AC-11, BR-13 | resolve with 0 then 1 Action | 409 then 200 | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-31) |
+| API-11 | API | AC-12, BR-14 | advisory flag does not resolve or pass gate | status unchanged, gate still 409 | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-31) |
+| API-12 | API | AC-13 | every status pair through PATCH | valid 200, others 409 correct code | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (64 pairs, 2026-10-31) |
+| API-13 | API | AC-14 | REOPENED to IN_PROGRESS | 200 | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-31) |
+| API-14 | API | AC-15, BR-17 | stale status after priority change | 409 STALE_UPDATE with currentVersion, unchanged | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-31) |
+| API-15 | API | AC-16 | missing expectedVersion on owner/priority/status/Action PATCH | 422 VERSION_REQUIRED | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-31) |
+| API-16 | API | BR-15 | Requester status write | 403 | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-31) |
+| API-26 | API | AC-11, BR-13 | racing Action create vs move to RESOLVED (PR #50 review) | never RESOLVED with zero Actions | server/tests/lab-04/ticket-workflow.api.test.ts | Pass |
 | API-17 | API | AC-02, BR-19 | Requester dashboard scoping | only own Tickets counted/listed | server/tests/lab-04/requester-dashboard.api.test.ts | Planned |
 | API-18 | API | AC-20 | Requester with no Tickets | zeros, empty lists, 200 | server/tests/lab-04/requester-dashboard.api.test.ts | Planned |
 | API-19 | API | AC-19 | each Requester metric vs SQL | equal | server/tests/lab-04/requester-dashboard.api.test.ts | Planned |
@@ -40,7 +41,7 @@ Final column starts as "Planned" and changes only after the suite has actually r
 | API-21 | API | AC-22 | Administrator userCounts present, staff absent | as stated | server/tests/lab-04/staff-dashboard.api.test.ts | Planned |
 | API-22 | API | AC-20 | empty database staff dashboard | zeros, 200 | server/tests/lab-04/staff-dashboard.api.test.ts | Planned |
 | API-23 | API | FR-18 | queue `activeOnly` and `ownerId` | correct subset | server/tests/lab-04/staff-dashboard.api.test.ts | Planned |
-| AUTHZ-01 | Authorization | 6.2 matrix | every role x every Lab 4 endpoint | codes exactly as matrix | server/tests/lab-04/authorization.api.test.ts | Planned |
+| AUTHZ-01 | Authorization | 6.2 matrix | every role x every Lab 4 endpoint | codes exactly as matrix | server/tests/lab-04/authorization.api.test.ts | Pass (actions and ticket write endpoints so far, 2026-10-31) |
 | PERF-01 | Performance smoke | BR-22 | dashboards on seeded plus 2,000 Tickets | each responds under 500 ms locally | server/tests/lab-04/performance.smoke.test.ts | Planned |
 | REG-01 | Regression | AC-30, FR-25 | Lab 1, 2, 3 server suites | all pass (documented BR-17 updates only) | server/tests/lab-01..03/ | Planned |
 | UI-01 | UI | AC-25, AC-26 | Actions Taken list, create, edit, validation, data kept | per state | client/tests/lab-04/ActionsTaken.test.tsx | Planned |

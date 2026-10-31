@@ -23,6 +23,7 @@ function toTicketDto(ticket: {
   itPriority: string;
   status: string;
   requesterId: number;
+  version: number;
   createdAt: Date;
   updatedAt: Date;
 }) {
@@ -39,6 +40,7 @@ function toTicketDto(ticket: {
     itPriority: ticket.itPriority,
     status: ticket.status,
     requesterId: ticket.requesterId,
+    version: ticket.version,
     createdAt: ticket.createdAt,
     updatedAt: ticket.updatedAt,
   };
@@ -181,6 +183,7 @@ ticketsRouter.patch("/:id/resolved-indication", ...requesterGate, async (req, re
 
     const updated = await prisma.ticket.update({
       where: { id: ticket.id },
+      // BR-16: the advisory flag is not a staff-visible workflow change, so it does not bump `version`.
       data: { resolvedIndicatedByRequester: true },
       include: { category: true, relatedSystem: true },
     });
