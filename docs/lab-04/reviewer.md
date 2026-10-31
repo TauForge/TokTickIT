@@ -6,10 +6,9 @@ into `main`. This file is filled in by hand after the peer review happens; nothi
 
 | PR | Feature Branch | Reviewer | Comments Given | Comments Received | Response | Approved |
 |---|---|---|---|---|---|---|
-| (pending) | lab4-10-0-contract | Bank848 | | | | |
 | (pending) | lab4-10a-actions-foundation | Bank848 | | | | |
 | (pending) | lab4-10b-workflow | Bank848 | | | | |
-| (pending) | lab4-10c-dashboards-api | Bank848 | | | | |
+| (pending) | lab4-10c-dashboards | Bank848 | | | | |
 | (pending) | lab4-10d-actions-ui | Bank848 | | | | |
 | (pending) | lab4-10e-dashboards-ui | Bank848 | | | | |
 | (pending) | lab4-10f-hardening | Bank848 | | | | |
