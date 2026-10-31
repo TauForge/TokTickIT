@@ -60,6 +60,21 @@ staffActionsRouter.get("/", ...staffGate, async (req, res, next) => {
   }
 });
 
+// Re-read the status under a row lock inside the write transaction, so a concurrent move to CLOSED/CANCELLED
+// cannot slip between the check and the write.
+async function assertTicketWritable(tx: Prisma.TransactionClient, ticketId: string) {
+  const rows = await tx.$queryRaw<{ status: TicketStatus }[]>`SELECT "status" FROM "Ticket" WHERE "id" = ${ticketId} FOR SHARE`;
+  if (rows.length === 0) throw new HttpError(404, "NOT_FOUND", "Ticket not found");
+  assertNotLocked(rows[0].status);
+}
+
+// A key identifies one request on one ticket; reusing it on another ticket is a client error, not a replay.
+function assertKeyMatchesTicket(original: { ticketId: string }, ticketId: string) {
+  if (original.ticketId !== ticketId) {
+    throw new HttpError(409, "IDEMPOTENCY_KEY_REUSED", "This Idempotency-Key was already used for a different ticket");
+  }
+}
+
 staffActionsRouter.post("/", ...staffGate, async (req, res, next) => {
   try {
     const ticket = await loadTicket(paramOf(req, "ticketId"));
@@ -78,6 +93,7 @@ staffActionsRouter.post("/", ...staffGate, async (req, res, next) => {
         include: ACTION_INCLUDE,
       });
       if (original) {
+        assertKeyMatchesTicket(original, ticket.id);
         res.status(200).json(toActionDto(original));
         return;
       }
@@ -87,12 +103,14 @@ staffActionsRouter.post("/", ...staffGate, async (req, res, next) => {
     if (!validation.ok) {
       throw new HttpError(422, "VALIDATION_FAILED", "One or more fields are invalid", validation.errors);
     }
-    assertNotLocked(ticket.status);
 
     try {
-      const created = await prisma.actionTaken.create({
-        data: { ...validation.value, ticketId: ticket.id, performedById, idempotencyKey: key ?? null },
-        include: ACTION_INCLUDE,
+      const created = await prisma.$transaction(async (tx) => {
+        await assertTicketWritable(tx, ticket.id);
+        return tx.actionTaken.create({
+          data: { ...validation.value, ticketId: ticket.id, performedById, idempotencyKey: key ?? null },
+          include: ACTION_INCLUDE,
+        });
       });
       res.status(201).json(toActionDto(created));
     } catch (error) {
@@ -103,6 +121,7 @@ staffActionsRouter.post("/", ...staffGate, async (req, res, next) => {
           include: ACTION_INCLUDE,
         });
         if (original) {
+          assertKeyMatchesTicket(original, ticket.id);
           res.status(200).json(toActionDto(original));
           return;
         }
@@ -137,18 +156,20 @@ staffActionsRouter.patch("/:actionId", ...staffGate, async (req, res, next) => {
     const stale = (currentVersion: number) =>
       new HttpError(409, "STALE_UPDATE", "This action was changed by someone else", [], { currentVersion });
     if (action.version !== expectedVersion) throw stale(action.version);
-    assertNotLocked(ticket.status);
 
     // BR-17: the version guard lives in the UPDATE itself, so no read-then-write race.
-    const { count } = await prisma.actionTaken.updateMany({
-      where: { id: action.id, version: expectedVersion },
-      data: { ...fields, version: { increment: 1 } },
+    const updated = await prisma.$transaction(async (tx) => {
+      await assertTicketWritable(tx, ticket.id);
+      const { count } = await tx.actionTaken.updateMany({
+        where: { id: action.id, version: expectedVersion },
+        data: { ...fields, version: { increment: 1 } },
+      });
+      if (count === 0) {
+        const current = await tx.actionTaken.findUnique({ where: { id: action.id } });
+        throw stale(current?.version ?? expectedVersion);
+      }
+      return tx.actionTaken.findUniqueOrThrow({ where: { id: action.id }, include: ACTION_INCLUDE });
     });
-    if (count === 0) {
-      const current = await prisma.actionTaken.findUnique({ where: { id: action.id } });
-      throw stale(current?.version ?? expectedVersion);
-    }
-    const updated = await prisma.actionTaken.findUniqueOrThrow({ where: { id: action.id }, include: ACTION_INCLUDE });
     res.status(200).json(toActionDto(updated));
   } catch (error) {
     next(error);

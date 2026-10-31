@@ -234,3 +234,53 @@ describe("API-09: Idempotency-Key (AC-17, BR-18)", () => {
     expect(c.body.id).not.toBe(a.body.id);
   });
 });
+
+describe("API-24: Idempotency-Key is scoped to its ticket (review on PR #49)", () => {
+  it("409 IDEMPOTENCY_KEY_REUSED when the same performer reuses a key on another ticket", async () => {
+    const t1 = await newTicket(jennifer, "Lab4 key scope fixture 1");
+    const t2 = await newTicket(jennifer, "Lab4 key scope fixture 2");
+    const key = `scope-${Date.now()}-key`;
+    const first = await request(app).post(base(t1)).set("Cookie", amy).set("Idempotency-Key", key).send(validBody);
+    const second = await request(app).post(base(t2)).set("Cookie", amy).set("Idempotency-Key", key).send(validBody);
+    expect(first.status).toBe(201);
+    expect(second.status).toBe(409);
+    expect(second.body.error.code).toBe("IDEMPOTENCY_KEY_REUSED");
+    expect(await prisma.actionTaken.count({ where: { ticketId: t2 } })).toBe(0);
+  });
+});
+
+describe("API-25: terminal-status check and write are atomic (review on PR #49)", () => {
+  it("create is rejected when the ticket closes while the request is in flight", async () => {
+    const t = await newTicket(jennifer, "Lab4 atomic create fixture");
+    let pending!: Promise<request.Response>;
+    await prisma.$transaction(async (tx) => {
+      await tx.ticket.update({ where: { id: t }, data: { status: "CLOSED" } }); // row lock held, uncommitted
+      pending = Promise.resolve(request(app).post(base(t)).set("Cookie", amy).send(validBody));
+      await new Promise((r) => setTimeout(r, 300));
+    });
+    const res = await pending;
+    expect(res.status).toBe(409);
+    expect(res.body.error.code).toBe("TICKET_LOCKED");
+    expect(await prisma.actionTaken.count({ where: { ticketId: t } })).toBe(0);
+  });
+
+  it("edit is rejected when the ticket closes while the request is in flight", async () => {
+    const t = await newTicket(jennifer, "Lab4 atomic edit fixture");
+    const created = await request(app).post(base(t)).set("Cookie", amy).send(validBody);
+    let pending!: Promise<request.Response>;
+    await prisma.$transaction(async (tx) => {
+      await tx.ticket.update({ where: { id: t }, data: { status: "CLOSED" } });
+      pending = Promise.resolve(
+        request(app)
+          .patch(`${base(t)}/${created.body.id}`)
+          .set("Cookie", amy)
+          .send({ expectedVersion: 0, result: "Changed after close" }),
+      );
+      await new Promise((r) => setTimeout(r, 300));
+    });
+    const res = await pending;
+    expect(res.status).toBe(409);
+    expect(res.body.error.code).toBe("TICKET_LOCKED");
+    expect((await prisma.actionTaken.findUnique({ where: { id: created.body.id } }))?.result).toBe(validBody.result);
+  });
+});
