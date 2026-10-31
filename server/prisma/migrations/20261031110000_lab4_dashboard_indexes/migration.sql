@@ -8,3 +8,6 @@ CREATE INDEX "Ticket_updatedAt_idx" ON "Ticket"("updatedAt");
 
 -- CreateIndex
 CREATE INDEX "ActionTaken_performedById_actionAt_idx" ON "ActionTaken"("performedById", "actionAt");
+
+-- DropIndex: redundant, (ownerId, status) above serves every ownerId-only lookup as its leading column.
+DROP INDEX "Ticket_ownerId_idx";
