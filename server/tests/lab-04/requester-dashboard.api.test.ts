@@ -138,3 +138,21 @@ describe("API-19: each Requester metric equals raw SQL (AC-19)", () => {
     expect(res.body.recentlyResolved.map((r: { id: string }) => r.id)).toEqual(expected.map((r) => r.id));
   });
 });
+
+describe("API-27: Requester ticket list status and activeOnly filters (review on PR #51)", () => {
+  it("accepts every status, rejects unknown ones with 422, and activeOnly matches the myOpen count", async () => {
+    const dash = await request(app).get("/api/v1/dashboard/requester").set("Cookie", cookie);
+    const open = await request(app).get("/api/v1/tickets?activeOnly=true&pageSize=50").set("Cookie", cookie);
+    expect(open.status).toBe(200);
+    expect(open.body.totalItems).toBe(dash.body.counts.myOpen);
+
+    for (const status of STATUSES) {
+      const res = await request(app).get(`/api/v1/tickets?status=${status}&pageSize=50`).set("Cookie", cookie);
+      expect(res.status).toBe(200);
+      expect(res.body.items.every((t: { status: string }) => t.status === status)).toBe(true);
+    }
+    const bad = await request(app).get("/api/v1/tickets?status=BOGUS").set("Cookie", cookie);
+    expect(bad.status).toBe(422);
+    expect(bad.body.error.code).toBe("VALIDATION_FAILED");
+  });
+});

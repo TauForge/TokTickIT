@@ -109,6 +109,10 @@ BR-20 "Open" Ticket means status in NEW, OPEN, IN_PROGRESS, WAITING_FOR_REQUESTE
 same set. RESOLVED, CLOSED and CANCELLED are never active.
 BR-21 "Recent" is a rolling window from the request instant: lists are the top 5 rows by the stated sort; the
 resolved list only includes Tickets updated within the last 30 days. Dates are shown to users in Asia/Bangkok.
+BR-22a Requester `GET /tickets` accepts any of the eight statuses (422 for an unknown one) and `activeOnly=true`
+(the open set above; `status` wins if both are sent), so every Requester card links to a list that matches its count.
+BR-22b Dashboard counts and lists are read in separate queries, so they can differ for a moment when a Ticket changes
+between them; the next refresh is consistent. Accepted for this sprint.
 BR-22 Every dashboard metric has a defined query, a zero state (value 0 or empty list, never an error) and a
 drill-down destination (section 6). A count and its drill-down list must agree at the time of the request.
 BR-23 Migration is additive: no existing User, Ticket, Attachment, Comment or Internal Note is changed except by
@@ -161,7 +165,7 @@ Terminal: CLOSED (except to REOPENED) and CANCELLED (no exits). Requesters have 
 Requester (`GET /api/v1/dashboard/requester`), all with `requesterId = caller`:
 | Metric | Calculation | Zero state | Drill-down |
 |---|---|---|---|
-| myOpen | count status in open set | 0 | /my-tickets (no filter, open set) |
+| myOpen | count status in open set | 0 | /tickets?activeOnly=true (same open set as the count) |
 | inProgress | count IN_PROGRESS | 0 | /my-tickets?status=IN_PROGRESS |
 | waitingForMe | count WAITING_FOR_REQUESTER | 0 | /my-tickets?status=WAITING_FOR_REQUESTER |
 | resolved | count RESOLVED | 0 | /my-tickets?status=RESOLVED |
