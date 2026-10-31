@@ -41,8 +41,8 @@ Final column starts as "Planned" and changes only after the suite has actually r
 | AUTHZ-01 | Authorization | 6.2 matrix | every role x every Lab 4 endpoint | codes exactly as matrix | server/tests/lab-04/authorization.api.test.ts | Pass (actions, ticket write and dashboard endpoints, 2026-10-31) |
 | PERF-01 | Performance smoke | BR-22 | dashboards on seeded plus 2,000 Tickets | each responds under 500 ms locally | server/tests/lab-04/performance.smoke.test.ts | Pass (2026-10-31) |
 | REG-01 | Regression | AC-30, FR-25 | Lab 1, 2, 3 server suites | all pass (documented BR-17 updates only) | server/tests/lab-01..03/ | Planned |
-| UI-01 | UI | AC-25, AC-26 | Actions Taken list, create, edit, validation, data kept | per state | client/tests/lab-04/ActionsTaken.test.tsx | Planned |
-| UI-02 | UI | AC-25, AC-15 | status control, gate callout, stale callout, summary refresh | per state | client/tests/lab-04/TicketWorkflow.test.tsx | Planned |
+| UI-01 | UI | AC-25, AC-26 | Actions Taken list, create, edit, validation, data kept | per state | client/tests/lab-04/ActionsTaken.test.tsx | Pass (11 tests, 2026-10-31) |
+| UI-02 | UI | AC-25, AC-15 | status control, gate callout, stale callout, summary refresh | per state | client/tests/lab-04/TicketWorkflow.test.tsx | Pass (7 tests, 2026-10-31) |
 | UI-03 | UI | FR-15, AC-20, AC-29 | Staff dashboard cards, links, states | per state | client/tests/lab-04/StaffDashboard.test.tsx | Planned |
 | UI-04 | UI | FR-14, AC-02 | Requester dashboard cards, links, states | per state | client/tests/lab-04/RequesterDashboard.test.tsx | Planned |
 | STYLE-01 | UI style | ui-spec | Zen Green classes, badges, no ad hoc styling | present | client/tests/lab-04/zenGreenStyleLab4.test.tsx | Planned |
