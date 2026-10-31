@@ -13,6 +13,9 @@ review workflow, and I made it check its own work against the handout twice befo
 | 5 | "Start." | Approving the contract-first approach | Contract documents and GitHub issues were written before any code, so every test traces to an acceptance criterion |
 | 6 | "Recheck again, is it all matching what the file wants and meeting every requirement?" | An independent audit after the build | The specification had 12 sections where the handout fixes 11, so I had it renumbered. Part 6 still needs each of the four mapped actions demonstrated |
 | 7 | "I don't understand what I should do next." | Making sure I understand the process, not just receive output | The remaining work is mostly mine: running the app, checking screenshots, the peer review with my friend, and writing this reflection |
+| 8 | "Wait, you merged?" | Checking the AI had not merged anything itself | It had only merged branches locally to carry a fix up the stack. The merge button stays with my reviewer, and I now ask before anything that touches GitHub |
+| 9 | "Is this the correct method?" (retargeting each PR) | Whether stacked PRs need manual changes every time | Stacked PRs are standard. The base must move to the staging branch after each merge, which is automatic if the reviewer deletes the merged branch |
+| 10 | "My friend told me to bind the PR with an issue." | Why the issues were not shown as linked | A "Closes #N" in a PR into a staging branch only cross-references the issue. The real link and close happen when the release PR merges into main, so that PR lists every issue |
 
 ## My Reflection
 I used Claude as the specification agent and the coding agent, and I treated it as a tool I had to direct and check,
