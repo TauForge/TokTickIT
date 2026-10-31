@@ -137,3 +137,26 @@ describe("AUTHZ-01: dashboards (specification 6.2)", () => {
     expect(asAdmin.body.userCounts).toBeDefined();
   });
 });
+
+describe("AUTHZ-01: create Ticket (Lab 4 decision: staff may create for themselves)", () => {
+  const payload = async () => ({
+    summary: "Staff created ticket",
+    description: "Created by staff for themselves.",
+    categoryId: (await prisma.category.findFirst({ where: { isActive: true } }))!.id,
+    requestedPriority: "LOW",
+  });
+  it("401 anonymous, 201 for Requester, IT Staff and Administrator", async () => {
+    expect((await request(app).post("/api/v1/tickets").send(await payload())).status).toBe(401);
+    for (const who of [owner, staff, admin]) {
+      expect((await request(app).post("/api/v1/tickets").set("Cookie", who).send(await payload())).status).toBe(201);
+    }
+  });
+  it("sets requesterId to the session user, ignoring the body", async () => {
+    const res = await request(app)
+      .post("/api/v1/tickets")
+      .set("Cookie", staff)
+      .send({ ...(await payload()), requesterId: staffId + 999 });
+    expect(res.status).toBe(201);
+    expect(res.body.requesterId).toBe(staffId);
+  });
+});

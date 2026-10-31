@@ -27,7 +27,10 @@ function StaffTicketDetailRoute() {
 
 function CreateTicketRoute() {
   const navigate = useNavigate();
-  return <CreateTicket onCreated={(ticket) => navigate(`/tickets/${ticket.id}`)} />;
+  const { user } = useAuth();
+  // Staff cannot open the Requester detail route, so they land on the staff detail screen.
+  const base = user?.role === "REQUESTER" ? "/tickets" : "/staff/tickets";
+  return <CreateTicket onCreated={(ticket) => navigate(`${base}/${ticket.id}`)} />;
 }
 
 // Every role lands on the Dashboard after login (ui-spec.md navigation).
