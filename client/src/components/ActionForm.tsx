@@ -48,9 +48,9 @@ function validate(v: FormValues): Errors {
   return errors;
 }
 
-function toInput(v: FormValues): ActionInput {
+function toInput(v: FormValues, includeActionAt: boolean): ActionInput {
   return {
-    actionAt: fromBangkokInputValue(v.actionAt),
+    ...(includeActionAt ? { actionAt: fromBangkokInputValue(v.actionAt) } : {}),
     description: v.description.trim(),
     result: v.result.trim(),
     followUpRequired: v.followUpRequired,
@@ -63,7 +63,14 @@ interface Props {
   action?: ActionDto;
   onSubmit: (input: ActionInput) => Promise<void>;
   onCancel: () => void;
-  onReload?: () => void;
+  onReload?: (draft: ActionDraft) => void;
+}
+
+export interface ActionDraft {
+  description: string;
+  result: string;
+  followUpNote: string;
+  attachmentNotes: string;
 }
 
 export function ActionForm({ action, onSubmit, onCancel, onReload }: Props) {
@@ -72,6 +79,8 @@ export function ActionForm({ action, onSubmit, onCancel, onReload }: Props) {
   const [formError, setFormError] = useState<string | null>(null);
   const [stale, setStale] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [actionAtTouched, setActionAtTouched] = useState(false);
+  const savingRef = useRef(false);
   const formRef = useRef<HTMLFormElement>(null);
   const isEdit = Boolean(action);
 
@@ -85,7 +94,7 @@ export function ActionForm({ action, onSubmit, onCancel, onReload }: Props) {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (saving) return;
+    if (savingRef.current) return;
     const found = validate(values);
     setErrors(found);
     setFormError(null);
@@ -94,9 +103,10 @@ export function ActionForm({ action, onSubmit, onCancel, onReload }: Props) {
       requestAnimationFrame(() => focusField(FIELD_ORDER.find((f) => found[f])!));
       return;
     }
+    savingRef.current = true;
     setSaving(true);
     try {
-      await onSubmit(toInput(values));
+      await onSubmit(toInput(values, !isEdit || actionAtTouched));
     } catch (err) {
       if (err instanceof ApiRequestError && err.code === "STALE_UPDATE") {
         setStale(true);
@@ -111,6 +121,7 @@ export function ActionForm({ action, onSubmit, onCancel, onReload }: Props) {
         setFormError("Unable to save this action right now. Your entries are kept; please try again.");
       }
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   }
@@ -148,14 +159,17 @@ export function ActionForm({ action, onSubmit, onCancel, onReload }: Props) {
       {stale && (
         <div role="alert" className="zg-error-callout">
           <p className="mb-1">Someone changed this. Reload to see the latest.</p>
-          <button type="button" onClick={() => onReload?.()}>
+          <button type="button" onClick={() => onReload?.({ description: values.description, result: values.result, followUpNote: values.followUpNote, attachmentNotes: values.attachmentNotes })}>
             Reload
           </button>
         </div>
       )}
 
       <label htmlFor="action-at">Action Date/Time</label>
-      <input id="action-at" type="datetime-local" value={values.actionAt} aria-describedby={describedBy("actionAt", "action-at")} onChange={(e) => set("actionAt", e.target.value)} />
+      <input id="action-at" type="datetime-local" value={values.actionAt} aria-describedby={describedBy("actionAt", "action-at")} onChange={(e) => {
+        setActionAtTouched(true);
+        set("actionAt", e.target.value);
+      }} />
       {errors.actionAt && <p id="action-at-error" className="zg-field-error">{errors.actionAt}</p>}
 
       <p className="form-label mt-3 mb-1">Performed by</p>

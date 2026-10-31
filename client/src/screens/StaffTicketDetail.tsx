@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, useRef } from "react";
 import { apiGet, apiPatch, apiPost, ApiRequestError } from "../api/apiClient";
 import { useAuth } from "../api/authContext";
 import { ActionsTakenPanel } from "../components/ActionsTakenPanel";
@@ -95,6 +95,8 @@ export function StaffTicketDetail({ ticketId }: { ticketId: string }) {
   const [tab, setTab] = useState<TabId>("comments");
   const [actionCount, setActionCount] = useState(0);
   const [reloadKey, setReloadKey] = useState(0);
+  const [mutating, setMutating] = useState(false);
+  const mutatingRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
 
   function loadTicket() {
@@ -125,7 +127,10 @@ export function StaffTicketDetail({ ticketId }: { ticketId: string }) {
   }, [ticketId]);
 
   async function applyMutation(path: string, body: unknown) {
-    if (!ticket) return;
+    if (!ticket || mutatingRef.current) return;
+    // One owner/priority/status write at a time: a second would carry the same expectedVersion.
+    mutatingRef.current = true;
+    setMutating(true);
     setConflict(null);
     try {
       // BR-17: every owner/priority/status write carries the version we last saw; the response carries the new one.
@@ -145,6 +150,9 @@ export function StaffTicketDetail({ ticketId }: { ticketId: string }) {
       } else {
         setConflict({ message: err instanceof ApiRequestError ? err.message : "Unable to save this change right now.", stale: false });
       }
+    } finally {
+      mutatingRef.current = false;
+      setMutating(false);
     }
   }
 
@@ -242,6 +250,7 @@ export function StaffTicketDetail({ ticketId }: { ticketId: string }) {
             <select
               id="staff-ticket-owner"
               className="form-select"
+              disabled={mutating}
               value={ticket.ownerId ?? ""}
               onChange={(e) => applyMutation("/owner", { ownerId: Number(e.target.value) })}
             >
@@ -265,6 +274,7 @@ export function StaffTicketDetail({ ticketId }: { ticketId: string }) {
             <select
               id="staff-ticket-priority"
               className="form-select"
+              disabled={mutating}
               value={ticket.itPriority}
               onChange={(e) => applyMutation("/priority", { itPriority: e.target.value })}
             >
@@ -282,6 +292,7 @@ export function StaffTicketDetail({ ticketId }: { ticketId: string }) {
             <select
               id="staff-ticket-status"
               className="form-select"
+              disabled={mutating}
               value={ticket.status}
               onChange={(e) => applyMutation("/status", { status: e.target.value })}
             >
