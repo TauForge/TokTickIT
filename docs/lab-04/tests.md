@@ -33,6 +33,7 @@ Final column starts as "Planned" and changes only after the suite has actually r
 | API-14 | API | AC-15, BR-17 | stale status after priority change | 409 STALE_UPDATE with currentVersion, unchanged | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-31) |
 | API-15 | API | AC-16 | missing expectedVersion on owner/priority/status/Action PATCH | 422 VERSION_REQUIRED | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-31) |
 | API-16 | API | BR-15 | Requester status write | 403 | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-31) |
+| API-26 | API | AC-11, BR-13 | racing Action create vs move to RESOLVED (PR #50 review) | never RESOLVED with zero Actions | server/tests/lab-04/ticket-workflow.api.test.ts | Pass |
 | API-17 | API | AC-02, BR-19 | Requester dashboard scoping | only own Tickets counted/listed | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-31) |
 | API-18 | API | AC-20 | Requester with no Tickets | zeros, empty lists, 200 | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-31) |
 | API-19 | API | AC-19 | each Requester metric vs SQL | equal | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-31) |

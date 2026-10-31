@@ -85,7 +85,8 @@ BR-08 Only the performing user or an Administrator may update an Action; another
 BR-09 No Action may be created or updated on a CANCELLED Ticket (409 `TICKET_LOCKED`). Actions may be added to a
 CLOSED Ticket only through reopening it first.
 BR-10 Requesters never create or change Actions Taken; every Action write from a Requester returns 403.
-A Requester requesting an Action of another Requester's Ticket receives 404.
+A Requester listing Actions (GET /tickets/:id/actions) of another Requester's Ticket receives 404; Action writes
+from any Requester return 403 whoever owns the Ticket, because the write routes are staff-only.
 BR-11 The Ticket statuses are NEW, OPEN, IN_PROGRESS, WAITING_FOR_REQUESTER, RESOLVED, CLOSED, REOPENED,
 CANCELLED. Only the transitions in section 6 are valid; any other request returns 409
 `INVALID_STATUS_TRANSITION`, or 409 `TICKET_LOCKED` from a terminal status.
@@ -97,7 +98,8 @@ BR-14 A Requester's "problem appears resolved" flag is advisory. It never change
 the resolution gate.
 BR-15 Only IT Staff and Administrators change status. A Requester status write returns 403.
 BR-16 Every Ticket and Action has an integer `version`, starting at 0, incremented by 1 on every successful
-write to that row.
+workflow write to that row (owner, IT Priority, status, Action update). The Requester's advisory "appears resolved"
+flag does not change `version`, so it can never make a staff member's next change stale.
 BR-17 Ticket owner, IT Priority and status writes, and Action updates, must carry `expectedVersion`. A missing
 value returns 422 `VERSION_REQUIRED`; a value different from the stored version returns 409 `STALE_UPDATE` with
 the current version, and nothing is written.
@@ -148,9 +150,9 @@ Terminal: CLOSED (except to REOPENED) and CANCELLED (no exits). Requesters have 
 ### 5.3 Authorization matrix (Lab 4 additions)
 | Operation | Unauthenticated | Requester (owner) | Requester (other) | IT Staff | Administrator |
 |---|---|---|---|---|---|
-| List Actions Taken of a Ticket | 401 | 200 | 404 | 200 | 200 |
-| Create Action Taken | 401 | 403 | 404 | 201 | 201 |
-| Update Action Taken | 401 | 403 | 404 | 200 if performer, else 403 | 200 |
+| List Actions Taken of a Ticket (Requester via GET /tickets/:id/actions) | 401 | 200 | 404 | 200 | 200 |
+| Create Action Taken | 401 | 403 | 403 | 201 | 201 |
+| Update Action Taken | 401 | 403 | 403 | 200 if performer, else 403 | 200 |
 | Delete Action Taken | no route | no route | no route | no route | no route |
 | PATCH ticket owner / priority / status | 401 | 403 | 403 | 200 | 200 |
 | Requester dashboard | 401 | 200 | n/a | 403 | 403 |
