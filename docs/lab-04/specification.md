@@ -270,17 +270,17 @@ AC-30 Given the Lab 1-3 test suites, when run from the final branch, then they p
 tests.md section 6 that follow BR-17.
 
 ## 11. Definition of Done
-- [ ] Every AC has at least one passing automated test traced in tests.md.
+- [x] Every AC has at least one passing automated test traced in tests.md.
 - [ ] Every FR and BR is implemented; any gap is written here, not dropped.
-- [ ] Unit, API, UI component, UI style, responsive, authorization, workflow, migration/regression,
+- [x] Unit, API, UI component, UI style, responsive, authorization, workflow, migration/regression,
   performance-smoke and E2E tests all pass from the final `main`.
-- [ ] No required test is skipped, disabled or commented out.
-- [ ] Labs 1-3 behavior still works; any intentional test change is listed in tests.md.
-- [ ] Migration and its rollback are tested; seed runs twice cleanly.
+- [x] No required test is skipped, disabled or commented out.
+- [x] Labs 1-3 behavior still works; any intentional test change is listed in tests.md.
+- [x] Migration and its rollback are tested; seed runs twice cleanly.
 - [ ] Dashboard counts verified against database queries (evidence saved).
 - [ ] No console errors, broken links, placeholders or unfinished controls on any screen.
-- [ ] Accessibility and visual checklist in ui-spec.md completed from the screenshots.
-- [ ] README setup, seed, migration, test and demo steps are current.
+- [ ] Accessibility and visual checklist in ui-spec.md completed from the screenshots (6 of 8 items ticked in tests.md section 4).
+- [x] README setup, seed, migration, test and demo steps are current.
 - [ ] All Lab 4 Issues merged into `lab4-staging` through peer-reviewed PRs, then into `main`; Kanban all Done.
 - [ ] These four spec documents existed before the implementation PRs merged (commit history).
 
@@ -296,3 +296,6 @@ tests.md section 6 that follow BR-17.
 - `expectedVersion` is required, so Lab 3 server tests that patch owner, priority or status are updated to send it.
 - Rolling windows are used instead of calendar days, so no day-boundary time zone ambiguity affects any count.
 - Lab 3's ui-spec lists an Urgent priority; the real enum is LOW, MEDIUM, HIGH, and this contract follows the code.
+- IT Staff and Administrators may create Tickets for themselves (`POST /tickets` is no longer Requester-only), because
+  the handout lists Create Ticket as a staff quick action. `requesterId` is always the session user, and staff land on
+  the staff detail screen afterwards. No Lab 1-3 test asserted a 403 here.

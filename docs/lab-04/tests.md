@@ -40,18 +40,18 @@ Final column starts as "Planned" and changes only after the suite has actually r
 | API-23 | API | FR-18 | queue `activeOnly` and `ownerId` | correct subset | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-31) |
 | AUTHZ-01 | Authorization | 6.2 matrix | every role x every Lab 4 endpoint | codes exactly as matrix | server/tests/lab-04/authorization.api.test.ts | Pass (actions, ticket write and dashboard endpoints, 2026-10-31) |
 | PERF-01 | Performance smoke | BR-22 | dashboards on seeded plus 2,000 Tickets | each responds under 500 ms locally | server/tests/lab-04/performance.smoke.test.ts | Pass (2026-10-31) |
-| REG-01 | Regression | AC-30, FR-25 | Lab 1, 2, 3 server suites | all pass (documented BR-17 updates only) | server/tests/lab-01..03/ | Planned |
+| REG-01 | Regression | AC-30, FR-25 | Lab 1, 2, 3 server suites | all pass (documented BR-17 updates only) | server/tests/lab-01..03/ | Pass (server 3 + 56 + 117 tests, client Lab 1-3 suites, 2026-10-31) |
 | UI-01 | UI | AC-25, AC-26 | Actions Taken list, create, edit, validation, data kept | per state | client/tests/lab-04/ActionsTaken.test.tsx | Pass (12 tests, 2026-10-31) |
 | UI-02 | UI | AC-25, AC-15 | status control, gate callout, stale callout, summary refresh | per state | client/tests/lab-04/TicketWorkflow.test.tsx | Pass (7 tests, 2026-10-31) |
 | UI-03 | UI | FR-15, AC-20, AC-29 | Staff dashboard cards, links, states | per state | client/tests/lab-04/StaffDashboard.test.tsx | Pass (12 tests, 2026-10-31) |
 | UI-04 | UI | FR-14, AC-02 | Requester dashboard cards, links, states | per state | client/tests/lab-04/RequesterDashboard.test.tsx | Pass (9 tests, 2026-10-31) |
 | STYLE-01 | UI style | ui-spec | Zen Green classes, badges, no ad hoc styling | present | client/tests/lab-04/zenGreenStyleLab4.test.tsx | Pass (6 tests, 2026-10-31) |
 | A11Y-01 | Accessibility | AC-28 | aria-current, labels, live region, focus, text status cues | present | client/tests/lab-04/accessibility.test.tsx | Pass (8 tests, 2026-10-31) |
-| VISUAL-01 | Responsive/visual | AC-27 | 3 viewports, no overflow, screenshots saved | saved, checklist true | e2e/lab-04/dashboards.spec.ts | Planned |
-| E2E-01 | E2E | AC-01, AC-03, AC-25 | staff adds, edits Actions; Requester sees them | full flow | e2e/lab-04/actions-taken-flow.spec.ts | Planned |
-| E2E-02 | E2E | AC-11, AC-14, AC-15 | resolve gate, reopen, stale conflict between two sessions | full flow | e2e/lab-04/ticket-resolution.spec.ts | Planned |
-| E2E-03 | E2E | AC-02, AC-19, AC-22 | dashboards per role, drill-down opens filtered lists | full flow | e2e/lab-04/dashboards.spec.ts | Planned |
-| E2E-04 | E2E | FR-25 | login, My Tickets, Attachments, comments, notes, admin users still work | full flow | e2e/lab-04/dashboards.spec.ts | Planned |
+| VISUAL-01 | Responsive/visual | AC-27 | 3 viewports, no overflow, screenshots saved | saved, checklist true | e2e/lab-04/dashboards.spec.ts | Pass (9 screenshots, overflow asserted at 1280/820/390, 2026-10-31) |
+| E2E-01 | E2E | AC-01, AC-03, AC-25 | staff adds, edits Actions; Requester sees them | full flow | e2e/lab-04/actions-taken-flow.spec.ts | Pass (2026-10-31) |
+| E2E-02 | E2E | AC-11, AC-14, AC-15 | resolve gate, reopen, stale conflict between two sessions | full flow | e2e/lab-04/ticket-resolution.spec.ts | Pass (2 tests incl. two-session stale conflict, 2026-10-31) |
+| E2E-03 | E2E | AC-02, AC-19, AC-22 | dashboards per role, drill-down opens filtered lists | full flow | e2e/lab-04/dashboards.spec.ts | Pass (3 tests, 2026-10-31) |
+| E2E-04 | E2E | FR-25 | login, My Tickets, Attachments, comments, notes, admin users still work | full flow | e2e/lab-04/dashboards.spec.ts | Pass (1 test; Create Ticket for staff also covered, 2026-10-31) |
 
 ## 3. Acceptance-Criterion Traceability
 AC-01 API-01, E2E-01 | AC-02 API-17, E2E-03 | AC-03 API-02, E2E-01 | AC-04 API-03, UNIT-01 | AC-05 API-03, UNIT-01 |
@@ -62,7 +62,26 @@ AC-22 API-21, E2E-03 | AC-23 MIG-01, MIG-02 | AC-24 SEED-01 | AC-25 UI-01, UI-02
 AC-27 VISUAL-01 | AC-28 A11Y-01 | AC-29 UI-03, UI-04 | AC-30 REG-01. Every AC has at least one test.
 
 ## 4. Responsive and Visual Checklist
-To be completed from the screenshots in `artifacts/lab-04/screenshots/` (see ui-spec.md checklist). Not yet run.
+Screenshots are in `artifacts/lab-04/screenshots/{staff-dashboard,requester-dashboard,actions-taken}/{desktop,tablet,mobile}.png`
+(1280, 820, 390 wide, full page, real rendered data). I opened staff-dashboard desktop and mobile, requester-dashboard
+mobile, and actions-taken tablet and mobile; the other four were checked only by the programmatic overflow assertion
+and the 44px probe below.
+
+- [x] Theme tokens and badge system match Lab 2/3 on both dashboards and the Actions Taken area (viewed; ticket links
+  and priority counts were blue and are now Zen Green)
+- [x] Role navigation correct for Requester, IT Staff, Administrator; active page indicated (A11Y-01, E2E-03, screenshots)
+- [x] Editable vs read-only fields visually distinct (beige read-only rows vs white inputs on the actions-taken shots)
+- [ ] Validation messages placed under fields and summarized: covered by UI-01 and E2E-01 assertions, not captured in a
+  screenshot, so not ticked
+- [ ] Keyboard focus visible and logical: focus moves are tested (A11Y-01) but the focus ring was not captured or
+  checked by eye, so not ticked
+- [x] No clipped text, overlapping controls or hidden buttons at 390/820/1280 (on the five screenshots viewed)
+- [x] No horizontal overflow at 390 (asserted by dashboards.spec.ts for all nine screenshots, also at 820 and 1280)
+- [x] Status never conveyed by color alone (badges carry text; follow-up shows "Follow-up needed")
+
+Hardening fixes from this pass: nav links, "View" links and form fields raised to 44px, file input 44px, `--zg-warning`
+darkened from #B5760B (3.3 to 3.8:1) to #8A5A00 (5.2 to 5.9:1), focus moves into the Action form on Add and back to the
+panel heading on Cancel or save, Actions Taken cells carry labels in the mobile card layout.
 
 ## 5. Test Commands
 - Server: `cd server && npm test`
@@ -70,5 +89,28 @@ To be completed from the screenshots in `artifacts/lab-04/screenshots/` (see ui-
 - E2E: `cd e2e && npx playwright test`
 
 ## 6. Final Results
-Not yet run. Filled in from the final `main` run, including complete output and any intentional test change
-(for example Lab 3 tests updated to send `expectedVersion` per BR-17).
+Run on branch `lab4-10f-hardening` (stacked on 10a to 10e), 2026-10-31, dev servers and `toktickit_test`.
+
+| Suite | Command | Result |
+|---|---|---|
+| Server | `cd server && npm test` | 42 files, 401 tests passed (Lab 1: 3, Lab 2: 56, Lab 3: 117, Lab 4: 225) |
+| Client | `cd client && npm test` | 18 files, 90 tests passed |
+| Client type check and build | `npx tsc -b`, `npx vite build` | no errors, build succeeded |
+| E2E | `cd e2e && npx playwright test` | 45 passed (Lab 2: 11, Lab 3: 17, Lab 4: 17) |
+
+Intentional test changes in this task:
+- `client/tests/lab-01/App.test.tsx` no longer uses `localStorage.clear()` (undefined in this jsdom) and asserts the
+  Sign In screen instead of the removed Development Requester Selection screen. It was failing before Lab 4.
+- Lab 2 and Lab 3 E2E specs wait for the Dashboard heading after login (Lab 4 lands every role on the Dashboard),
+  scope nav clicks to the Main navigation (the dashboard also has a My Queue quick action), and open the Internal
+  Notes tab before typing a note.
+- Earlier tasks: Lab 3 server tests send `expectedVersion` per BR-17.
+
+Bugs the E2E pass found and fixed: an Action added within the minute its Ticket was created was rejected because the
+form's minute-precision default sorted before the creation seconds (validator now compares at minute precision,
+UNIT-02 extended); staff Create Ticket returned 403 and then opened a Requester-only detail route (decision recorded
+in specification.md section 12).
+
+The Lab 3 first-login E2E spec changes the password of `onboarding@toktickit.local`; `npx prisma db seed` restores it
+and was re-run after the final E2E run. One early run of the Lab 4 resolution spec failed once and passed on every
+later run (about eight); the cause was not isolated.
