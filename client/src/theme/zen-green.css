@@ -94,6 +94,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   height: 1.25rem;
   padding: 0;
   flex: none;
+  appearance: auto;
   accent-color: var(--zg-primary);
 }
 .zg-card input[type="checkbox"] + label, .zg-card input[type="radio"] + label { display: inline; margin-top: 0; }
