@@ -70,7 +70,7 @@ describe("API-01: create Action as IT Staff (AC-01, BR-03)", () => {
 describe("API-02: non-owner staff creates Action (AC-03, BR-02)", () => {
   it("returns 201 and leaves the Ticket owner unchanged", async () => {
     const t = await newTicket(jennifer, "Lab4 owner fixture");
-    await request(app).patch(`/api/v1/staff/tickets/${t}/owner`).set("Cookie", amy).send({ ownerId: amyId });
+    await request(app).patch(`/api/v1/staff/tickets/${t}/owner`).set("Cookie", amy).send({ ownerId: amyId, expectedVersion: 0 });
     const res = await request(app).post(base(t)).set("Cookie", carlos).send(validBody);
     expect(res.status).toBe(201);
     const after = await prisma.ticket.findUnique({ where: { id: t } });

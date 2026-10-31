@@ -17,8 +17,13 @@ async function createOpenTicket(): Promise<string> {
   await request(app)
     .patch(`/api/v1/staff/tickets/${created.body.id}/owner`)
     .set("Cookie", staffCookie)
-    .send({ ownerId: staffUserId });
+    .send({ ownerId: staffUserId, expectedVersion: 0 });
   return created.body.id;
+}
+
+
+async function versionOf(id: string): Promise<number> {
+  return (await prisma.ticket.findUniqueOrThrow({ where: { id } })).version;
 }
 
 beforeAll(async () => {
@@ -37,7 +42,7 @@ describe("PATCH /api/v1/staff/tickets/:id/status", () => {
     const response = await request(app)
       .patch(`/api/v1/staff/tickets/${ticketId}/status`)
       .set("Cookie", staffCookie)
-      .send({ status: "IN_PROGRESS" });
+      .send({ status: "IN_PROGRESS", expectedVersion: await versionOf(ticketId) });
 
     expect(response.status).toBe(200);
     expect(response.body.status).toBe("IN_PROGRESS");
@@ -48,7 +53,7 @@ describe("PATCH /api/v1/staff/tickets/:id/status", () => {
     const response = await request(app)
       .patch(`/api/v1/staff/tickets/${ticketId}/status`)
       .set("Cookie", staffCookie)
-      .send({ status: "RESOLVED" });
+      .send({ status: "RESOLVED", expectedVersion: await versionOf(ticketId) });
 
     expect(response.status).toBe(409);
     expect(response.body.error.code).toBe("INVALID_STATUS_TRANSITION");
@@ -60,7 +65,7 @@ describe("PATCH /api/v1/staff/tickets/:id/status", () => {
     const response = await request(app)
       .patch(`/api/v1/staff/tickets/${ticketId}/status`)
       .set("Cookie", staffCookie)
-      .send({ status: "IN_PROGRESS" });
+      .send({ status: "IN_PROGRESS", expectedVersion: await versionOf(ticketId) });
 
     expect(response.status).toBe(409);
     expect(response.body.error.code).toBe("TICKET_LOCKED");
@@ -72,7 +77,7 @@ describe("PATCH /api/v1/staff/tickets/:id/status", () => {
     const response = await request(app)
       .patch(`/api/v1/staff/tickets/${ticketId}/status`)
       .set("Cookie", staffCookie)
-      .send({ status: "REOPENED" });
+      .send({ status: "REOPENED", expectedVersion: await versionOf(ticketId) });
 
     expect(response.status).toBe(200);
     expect(response.body.status).toBe("REOPENED");
@@ -84,7 +89,7 @@ describe("PATCH /api/v1/staff/tickets/:id/status", () => {
     const response = await request(app)
       .patch(`/api/v1/staff/tickets/${ticketId}/status`)
       .set("Cookie", staffCookie)
-      .send({ status: "REOPENED" });
+      .send({ status: "REOPENED", expectedVersion: await versionOf(ticketId) });
 
     expect(response.status).toBe(409);
     expect(response.body.error.code).toBe("TICKET_LOCKED");

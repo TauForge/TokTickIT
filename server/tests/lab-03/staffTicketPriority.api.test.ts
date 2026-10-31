@@ -15,6 +15,11 @@ async function createTicket(requestedPriority = "LOW"): Promise<{ id: string; re
   return { id: response.body.id, requestedPriority: response.body.requestedPriority };
 }
 
+
+async function versionOf(id: string): Promise<number> {
+  return (await prisma.ticket.findUniqueOrThrow({ where: { id } })).version;
+}
+
 beforeAll(async () => {
   const staffLogin = await request(app).post("/api/v1/auth/login").send({ email: "amy.tran@toktickit.dev", password: "DevPass123!" });
   staffCookie = staffLogin.headers["set-cookie"];
@@ -29,7 +34,7 @@ describe("PATCH /api/v1/staff/tickets/:id/priority", () => {
     const response = await request(app)
       .patch(`/api/v1/staff/tickets/${ticket.id}/priority`)
       .set("Cookie", staffCookie)
-      .send({ itPriority: "HIGH" });
+      .send({ itPriority: "HIGH", expectedVersion: await versionOf(ticket.id) });
 
     expect(response.status).toBe(200);
     expect(response.body.itPriority).toBe("HIGH");
@@ -45,7 +50,7 @@ describe("PATCH /api/v1/staff/tickets/:id/priority", () => {
   it("409 TICKET_LOCKED for a CANCELLED ticket", async () => {
     const ticket = await createTicket();
     await prisma.ticket.update({ where: { id: ticket.id }, data: { status: "CANCELLED" } });
-    const response = await request(app).patch(`/api/v1/staff/tickets/${ticket.id}/priority`).set("Cookie", staffCookie).send({ itPriority: "HIGH" });
+    const response = await request(app).patch(`/api/v1/staff/tickets/${ticket.id}/priority`).set("Cookie", staffCookie).send({ itPriority: "HIGH", expectedVersion: await versionOf(ticket.id) });
     expect(response.status).toBe(409);
     expect(response.body.error.code).toBe("TICKET_LOCKED");
   });
