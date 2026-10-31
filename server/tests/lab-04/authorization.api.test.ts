@@ -116,3 +116,24 @@ describe("AUTHZ-01: PATCH ticket owner / priority / status", () => {
     expect(cancel.status).toBe(200);
   });
 });
+
+describe("AUTHZ-01: dashboards (specification 6.2)", () => {
+  const requesterDash = "/api/v1/dashboard/requester";
+  const staffDash = "/api/v1/dashboard/staff";
+  it("Requester dashboard: 401 anonymous, 200 Requester, 403 IT Staff and Administrator", async () => {
+    expect((await request(app).get(requesterDash)).status).toBe(401);
+    expect((await request(app).get(requesterDash).set("Cookie", owner)).status).toBe(200);
+    expect((await request(app).get(requesterDash).set("Cookie", staff)).status).toBe(403);
+    expect((await request(app).get(requesterDash).set("Cookie", admin)).status).toBe(403);
+  });
+  it("Staff dashboard: 401 anonymous, 403 Requester, 200 IT Staff, 200 Administrator with user counts", async () => {
+    expect((await request(app).get(staffDash)).status).toBe(401);
+    expect((await request(app).get(staffDash).set("Cookie", owner)).status).toBe(403);
+    const asStaff = await request(app).get(staffDash).set("Cookie", staff);
+    const asAdmin = await request(app).get(staffDash).set("Cookie", admin);
+    expect(asStaff.status).toBe(200);
+    expect(asStaff.body.userCounts).toBeUndefined();
+    expect(asAdmin.status).toBe(200);
+    expect(asAdmin.body.userCounts).toBeDefined();
+  });
+});
