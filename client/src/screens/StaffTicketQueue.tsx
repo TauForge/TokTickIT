@@ -29,7 +29,7 @@ const PRIORITIES = ["LOW", "MEDIUM", "HIGH"];
 
 export function StaffTicketQueue() {
   const { user } = useAuth();
-  // Dashboard drill-down links (specification 6.3) arrive as ?status=&itPriority=&ownerId=&activeOnly=true.
+  // Dashboard drill-down links (specification 5.4) arrive as ?status=&itPriority=&ownerId=&activeOnly=true.
   const [searchParams] = useSearchParams();
   const initial = searchParams;
   const headingRef = useRef<HTMLHeadingElement>(null);

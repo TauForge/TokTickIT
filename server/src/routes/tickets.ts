@@ -11,6 +11,14 @@ export const ticketsRouter = Router();
 
 const requesterGate: RequestHandler[] = [requireAuth, blockIfPasswordChangeRequired, requireRole("REQUESTER")];
 
+// Lab 4 decision: IT Staff and Administrators may also create tickets for themselves (the
+// handout lists Create Ticket as a staff quick action). requesterId is always the session user.
+const createGate: RequestHandler[] = [
+  requireAuth,
+  blockIfPasswordChangeRequired,
+  requireRole("REQUESTER", "IT_STAFF", "ADMINISTRATOR"),
+];
+
 function toTicketDto(ticket: {
   id: string;
   ticketNumber: string;
@@ -47,7 +55,7 @@ function toTicketDto(ticket: {
   };
 }
 
-ticketsRouter.post("/", ...requesterGate, async (req, res, next) => {
+ticketsRouter.post("/", ...createGate, async (req, res, next) => {
   try {
     const validation = validateCreateTicketRequest(req.body);
     if (!validation.ok) {

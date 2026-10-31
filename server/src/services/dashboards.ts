@@ -1,6 +1,6 @@
 import type { PrismaClient, TicketStatus } from "@prisma/client";
 
-// Specification 6.3 / BR-19..22: every figure is computed per request on the server with count/groupBy and
+// Specification 5.4 / BR-19..22: every figure is computed per request on the server with count/groupBy and
 // bounded `take: 5` lists, never by loading whole Ticket collections.
 export const ACTIVE_STATUSES: TicketStatus[] = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "REOPENED"];
 const LIST_SIZE = 5;

@@ -47,7 +47,7 @@ original request and return the original Action instead of creating a second one
 FR-14 System shall provide a Requester dashboard endpoint returning only the authenticated Requester's counts
 and Ticket lists.
 FR-15 System shall provide an IT Staff dashboard endpoint, available to IT Staff and Administrators, returning
-the metrics defined in section 6.
+the metrics defined in section 5.4.
 FR-16 System shall add active user counts to the dashboard response for Administrators only.
 FR-17 System shall calculate every dashboard value on the server from stored data per request.
 FR-18 System shall let the IT Staff Ticket Queue filter to active tickets owned by a user (`activeOnly`) so every
@@ -67,12 +67,14 @@ FR-25 System shall keep every Lab 1-3 endpoint and screen working for its permit
 FR-26 System shall document setup, seed, migration, test and demonstration steps in the README.
 
 ## 5. Business Rules
+### 5.1 Numbered rules
 BR-01 An Action Taken belongs to exactly one Ticket and never moves to another Ticket.
 BR-02 The Ticket Owner coordinates the Ticket, but an Action Taken may be performed by any active IT Staff or
 Administrator user, not only the owner.
 BR-03 Performed by is always the authenticated user; a client-supplied performer is ignored.
 BR-04 Action date/time defaults to the server time at creation. A client may supply it, but it must not be later
-than server time plus 5 minutes and not earlier than the Ticket's creation time (422 otherwise).
+than server time plus 5 minutes and not earlier than the Ticket's creation time, compared at minute precision because the form's date/time input has
+no seconds (422 otherwise).
 BR-05 Description is required, 1-2000 characters after trimming. Result is required, 1-1000 characters. Attachment
 notes are optional, up to 500 characters.
 BR-06 Follow-up required is a boolean, default false. When true, follow-up note is required (1-1000 characters).
@@ -125,8 +127,7 @@ Lab 3 BR-19; BR-17 adds a stale check to Lab 3 owner/priority/status writes).
 BR-26 Error responses use the Lab 3 envelope and codes; none leaks stack traces or internal identifiers.
 BR-27 Priority values are LOW, MEDIUM, HIGH, as stored in the `Priority` enum.
 
-## 6. Ticket Rules, Authorization and Dashboard Definitions
-### 6.1 Final Ticket status transition matrix
+### 5.2 Final Ticket status transition matrix
 | From | To | Who | Notes |
 |---|---|---|---|
 | NEW | OPEN | system | automatic on first ownership assignment |
@@ -150,7 +151,7 @@ BR-27 Priority values are LOW, MEDIUM, HIGH, as stored in the `Priority` enum.
 
 Terminal: CLOSED (except to REOPENED) and CANCELLED (no exits). Requesters have no status transitions.
 
-### 6.2 Authorization matrix (Lab 4 additions)
+### 5.3 Authorization matrix (Lab 4 additions)
 | Operation | Unauthenticated | Requester (owner) | Requester (other) | IT Staff | Administrator |
 |---|---|---|---|---|---|
 | List Actions Taken of a Ticket (Requester via GET /tickets/:id/actions) | 401 | 200 | 404 | 200 | 200 |
@@ -161,7 +162,7 @@ Terminal: CLOSED (except to REOPENED) and CANCELLED (no exits). Requesters have 
 | Requester dashboard | 401 | 200 | n/a | 403 | 403 |
 | Staff dashboard | 401 | 403 | 403 | 200 | 200 (+ user counts) |
 
-### 6.3 Dashboard metrics
+### 5.4 Dashboard metrics
 Requester (`GET /api/v1/dashboard/requester`), all with `requesterId = caller`:
 | Metric | Calculation | Zero state | Drill-down |
 |---|---|---|---|
@@ -188,12 +189,12 @@ IT Staff (`GET /api/v1/dashboard/staff`):
 | myRecentActions | top 5 Actions with performedBy = caller, actionAt desc | empty list | row opens its Ticket Detail |
 | userCounts (Administrator only) | active, inactive, and per-role counts | zeros | /admin/users |
 
-## 7. UI Specification Summary
+## 6. UI Specification Summary
 See ui-spec.md. Staff Ticket Detail gains an Actions Taken area (list, create, view/edit); Requester Ticket Detail
 gains a read-only list. Two dashboard screens and a Dashboard nav item are added. All screens reuse Lab 2/3 Zen
 Green tokens, badges, tabs, tables, cards and responsive rules.
 
-## 8. Data Changes
+## 7. Data Changes
 - New model `ActionTaken`: id (uuid), ticketId FK (Restrict), performedById FK to User (Restrict), actionAt,
   description, result, followUpRequired, followUpNote?, attachmentNotes?, idempotencyKey?, version Int default 0,
   createdAt, updatedAt. Indexes: `[ticketId, actionAt, id]`, `[performedById, actionAt]`; unique
@@ -214,13 +215,13 @@ Green tokens, badges, tabs, tables, cards and responsive rules.
   which also supports the append-only audit rule; (4) a unique (performer, key) pair for idempotency so retries
   are safe at the database, not just in application code.
 
-## 9. API Contract
+## 8. API Contract
 See api-spec.md. Summary: `GET/POST /api/v1/staff/tickets/:id/actions`, `PATCH /api/v1/staff/tickets/:id/actions/:actionId`,
 `GET /api/v1/tickets/:id/actions` (Requester, read-only), `GET /api/v1/dashboard/requester`,
 `GET /api/v1/dashboard/staff`; existing owner, priority, status PATCH routes gain `expectedVersion`; the staff
 queue gains `activeOnly`.
 
-## 10. Acceptance Criteria
+## 9. Acceptance Criteria
 AC-01 Given a permitted IT Staff user and valid data, when an Action Taken is created, then it is saved under the
 correct Ticket with the authenticated user as performer.
 AC-02 Given an authenticated Requester, when dashboard data is retrieved, then only metrics and recent Tickets
@@ -241,7 +242,7 @@ AC-11 Given a Ticket with zero Actions, when staff request RESOLVED, then the AP
 `RESOLUTION_REQUIRES_ACTION`; after one Action exists the same request succeeds.
 AC-12 Given the Requester's "appears resolved" flag is set, when status is still IN_PROGRESS, then the status is
 unchanged and the resolution gate still applies.
-AC-13 Given every pair of statuses, when staff request each transition, then exactly the pairs in section 6.1 are
+AC-13 Given every pair of statuses, when staff request each transition, then exactly the pairs in section 5.2 are
 accepted and all others return 409 with the documented code.
 AC-14 Given a REOPENED Ticket, when staff request IN_PROGRESS, then it succeeds (Lab 3 dead end removed).
 AC-15 Given two staff users hold version 3 of a Ticket, when the first changes priority and the second then changes
@@ -274,22 +275,22 @@ AC-29 Given the backend is unreachable, when a Lab 4 screen loads or submits, th
 AC-30 Given the Lab 1-3 test suites, when run from the final branch, then they pass, except changes listed in
 tests.md section 6 that follow BR-17.
 
-## 11. Definition of Done
-- [ ] Every AC has at least one passing automated test traced in tests.md.
+## 10. Definition of Done
+- [x] Every AC has at least one passing automated test traced in tests.md.
 - [ ] Every FR and BR is implemented; any gap is written here, not dropped.
-- [ ] Unit, API, UI component, UI style, responsive, authorization, workflow, migration/regression,
+- [x] Unit, API, UI component, UI style, responsive, authorization, workflow, migration/regression,
   performance-smoke and E2E tests all pass from the final `main`.
-- [ ] No required test is skipped, disabled or commented out.
-- [ ] Labs 1-3 behavior still works; any intentional test change is listed in tests.md.
-- [ ] Migration and its rollback are tested; seed runs twice cleanly.
+- [x] No required test is skipped, disabled or commented out.
+- [x] Labs 1-3 behavior still works; any intentional test change is listed in tests.md.
+- [x] Migration and its rollback are tested; seed runs twice cleanly.
 - [ ] Dashboard counts verified against database queries (evidence saved).
 - [ ] No console errors, broken links, placeholders or unfinished controls on any screen.
-- [ ] Accessibility and visual checklist in ui-spec.md completed from the screenshots.
-- [ ] README setup, seed, migration, test and demo steps are current.
+- [ ] Accessibility and visual checklist in ui-spec.md completed from the screenshots (6 of 8 items ticked in tests.md section 4).
+- [x] README setup, seed, migration, test and demo steps are current.
 - [ ] All Lab 4 Issues merged into `lab4-staging` through peer-reviewed PRs, then into `main`; Kanban all Done.
 - [ ] These four spec documents existed before the implementation PRs merged (commit history).
 
-## 12. Assumptions and Decisions
+## 11. Assumptions and Decisions
 - Performed by is the authenticated user; there is no separate "assignee" on an Action (handout AC-01 "approved
   assignee" is read as the authenticated actor). The handout's "assign, complete, cancel, inactive-assignee" map to
   Ticket Owner assignment, move to RESOLVED, move to CANCELLED, and the existing 409 `INVALID_OWNER`.
@@ -301,3 +302,6 @@ tests.md section 6 that follow BR-17.
 - `expectedVersion` is required, so Lab 3 server tests that patch owner, priority or status are updated to send it.
 - Rolling windows are used instead of calendar days, so no day-boundary time zone ambiguity affects any count.
 - Lab 3's ui-spec lists an Urgent priority; the real enum is LOW, MEDIUM, HIGH, and this contract follows the code.
+- IT Staff and Administrators may create Tickets for themselves (`POST /tickets` is no longer Requester-only), because
+  the handout lists Create Ticket as a staff quick action. `requesterId` is always the session user, and staff land on
+  the staff detail screen afterwards. No Lab 1-3 test asserted a 403 here.

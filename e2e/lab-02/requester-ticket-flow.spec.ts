@@ -17,7 +17,7 @@ test("a requester can select an identity, create a ticket, and find it in My Tic
   await page.getByLabel(/email/i).fill("jennifer.anderson@toktickit.dev");
   await page.getByLabel(/password/i).fill("DevPass123!");
   await page.getByRole("button", { name: /sign in/i }).click();
-  await page.getByRole("heading", { name: /my tickets/i }).waitFor();
+  await page.getByRole("heading", { level: 1, name: /welcome/i }).waitFor();
 
   const summary = `E2E test ${runId}: laptop will not power on`;
   await page.goto("/tickets/new");
@@ -43,7 +43,7 @@ test("requester B cannot see requester A's tickets in My Tickets", async ({ page
   await page.getByLabel(/email/i).fill("jennifer.anderson@toktickit.dev");
   await page.getByLabel(/password/i).fill("DevPass123!");
   await page.getByRole("button", { name: /sign in/i }).click();
-  await page.getByRole("heading", { name: /my tickets/i }).waitFor();
+  await page.getByRole("heading", { level: 1, name: /welcome/i }).waitFor();
 
   const summary = `E2E isolation test ${runId} for requester A`;
   await page.goto("/tickets/new");
@@ -64,7 +64,7 @@ test("requester B cannot see requester A's tickets in My Tickets", async ({ page
   await pageB.getByLabel(/email/i).fill("michael.brown@toktickit.dev");
   await pageB.getByLabel(/password/i).fill("DevPass123!");
   await pageB.getByRole("button", { name: /sign in/i }).click();
-  await pageB.getByRole("heading", { name: /my tickets/i }).waitFor();
+  await pageB.getByRole("heading", { level: 1, name: /welcome/i }).waitFor();
   await pageB.goto("/tickets");
   await pageB.getByLabel(/^search$/i).fill(`E2E isolation test ${runId}`);
   await expect(pageB.getByText(/no tickets match/i)).toBeVisible();

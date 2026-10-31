@@ -41,17 +41,17 @@ export function ActionsList({ actions, onSelect }: { actions: ActionDto[]; onSel
       <tbody>
         {actions.map((a) => (
           <tr key={a.id}>
-            <td>{formatBangkok(a.actionAt)}</td>
-            <td>{a.performedBy.displayName}</td>
-            <td>{a.result}</td>
-            <td>
+            <td data-label="Date/Time">{formatBangkok(a.actionAt)}</td>
+            <td data-label="Performed by">{a.performedBy.displayName}</td>
+            <td data-label="Result">{a.result}</td>
+            <td data-label="Follow-up">
               <FollowUpBadge required={a.followUpRequired} />
               {a.followUpRequired && a.followUpNote && <p className="mb-0">{a.followUpNote}</p>}
             </td>
-            <td>
+            <td data-label="Description">
               <Description text={a.description} />
             </td>
-            <td>{a.attachmentNotes ?? ""}</td>
+            <td data-label="Attachment notes">{a.attachmentNotes ?? ""}</td>
             {onSelect && (
               <td>
                 <button type="button" aria-label={`View action by ${a.performedBy.displayName} at ${formatBangkok(a.actionAt)}`} onClick={() => onSelect(a)}>

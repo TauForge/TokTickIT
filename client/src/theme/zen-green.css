@@ -11,7 +11,7 @@
   --zg-text: #1F2E28;
   --zg-readonly-bg: #F0EFE6;
   --zg-error: #B3261E;
-  --zg-warning: #B5760B;
+  --zg-warning: #8A5A00; /* darkened from #B5760B: 3.3-3.8:1 failed the 4.5:1 text contrast rule */
 
   /* Badge palette (Task 22 addition — stays within the green/amber/red palette
      already established above; not part of the brief's literal Step 1 sample). */
@@ -60,9 +60,10 @@ body { background: var(--zg-bg); color: var(--zg-text); }
   gap: 12px;
 }
 .zg-app-header nav a { color: #fff; margin-right: 16px; text-decoration: none; }
-.zg-app-header nav a { padding: 4px 0; display: inline-block; border-bottom: 2px solid transparent; }
+.zg-app-header nav a { padding: 4px 0; display: inline-flex; align-items: center; min-height: 44px; border-bottom: 2px solid transparent; }
 .zg-app-header nav a:hover { border-bottom-color: rgba(255,255,255,0.6); }
 .zg-app-header nav a[aria-current="page"] { border-bottom: 2px solid #fff; font-weight: 600; }
+h2:focus { outline: none; }
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
   outline: 2px solid var(--zg-secondary);
   outline-offset: 2px;
@@ -82,12 +83,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .zg-card label { display: block; font-size: 13px; font-weight: 600; margin-top: 12px; }
 .zg-card input, .zg-card select, .zg-card textarea {
   width: 100%;
-  height: 40px;
+  height: 44px;
   background: #fff;
   border: 1px solid var(--zg-border);
   border-radius: 6px;
   padding: 0 10px;
 }
+input[type="file"] { min-height: 44px; padding: 8px 10px; }
 .zg-card textarea { height: 96px; padding: 10px; resize: vertical; }
 .zg-card input:focus, .zg-card select:focus, .zg-card textarea:focus {
   outline: 2px solid var(--zg-secondary);
@@ -176,7 +178,8 @@ button:not([type="submit"]):not(.zg-primary-button) {
 .zg-metric-label { font-size: 14px; margin: 0 0 4px; overflow-wrap: anywhere; }
 .zg-metric-value { font-size: 32px; font-weight: 700; line-height: 1.2; margin: 0; }
 .zg-metric-note { font-size: 13px; font-weight: 600; color: var(--zg-warning); margin: 4px 0; }
-.zg-metric-card > a { display: inline-block; min-height: 44px; line-height: 44px; color: var(--zg-primary); font-weight: 600; }
+.zg-metric-card > a { display: inline-block; min-width: 44px; min-height: 44px; line-height: 44px; color: var(--zg-primary); font-weight: 600; }
+.zg-metric-split a, .zg-ticket-list a { color: var(--zg-primary); }
 .zg-metric-split { list-style: none; margin: 0; padding: 0; }
 .zg-metric-split li { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .zg-metric-split .zg-metric-value { font-size: 20px; }
@@ -208,4 +211,6 @@ button:not([type="submit"]):not(.zg-primary-button) {
     padding: 8px;
   }
   .zg-table tbody td { display: block; padding: 4px 0; border: none; }
+  .zg-table tbody td:empty { display: none; }
+  .zg-table tbody td[data-label]::before { content: attr(data-label) ": "; font-weight: 600; }
 }

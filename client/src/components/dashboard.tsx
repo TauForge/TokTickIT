@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ApiRequestError } from "../api/apiClient";
 import { formatBangkok } from "../utils/bangkokTime";
@@ -144,10 +144,17 @@ export function DashboardFrame(props: {
 }
 
 export function DashboardError({ onRetry, busy }: { onRetry: () => void; busy: boolean }) {
+  const retryRef = useRef<HTMLButtonElement>(null);
+  const used = useRef(false);
+  // The button is disabled while the retry runs, which drops focus; give it back when the retry finishes.
+  useEffect(() => {
+    if (busy) used.current = true;
+    else if (used.current) retryRef.current?.focus();
+  }, [busy]);
   return (
     <div role="alert" className="zg-error-callout">
       <p className="mb-2">{DASHBOARD_ERROR}</p>
-      <button type="button" onClick={onRetry} disabled={busy}>
+      <button ref={retryRef} type="button" onClick={onRetry} disabled={busy}>
         Retry
       </button>
     </div>

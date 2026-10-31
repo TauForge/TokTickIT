@@ -3,7 +3,7 @@ import request from "supertest";
 import { app } from "../../src/app";
 import { prisma } from "../../src/prisma";
 
-// AUTHZ-01: role x endpoint codes per specification 6.2, for the Lab 4 endpoints that exist so far
+// AUTHZ-01: role x endpoint codes per specification 5.3, for the Lab 4 endpoints that exist so far
 // (Actions Taken list/create/update and the versioned owner/priority/status writes).
 const PASSWORD = "DevPass123!";
 async function login(email: string): Promise<string[]> {
@@ -117,7 +117,7 @@ describe("AUTHZ-01: PATCH ticket owner / priority / status", () => {
   });
 });
 
-describe("AUTHZ-01: dashboards (specification 6.2)", () => {
+describe("AUTHZ-01: dashboards (specification 5.3)", () => {
   const requesterDash = "/api/v1/dashboard/requester";
   const staffDash = "/api/v1/dashboard/staff";
   it("Requester dashboard: 401 anonymous, 200 Requester, 403 IT Staff and Administrator", async () => {
@@ -135,5 +135,28 @@ describe("AUTHZ-01: dashboards (specification 6.2)", () => {
     expect(asStaff.body.userCounts).toBeUndefined();
     expect(asAdmin.status).toBe(200);
     expect(asAdmin.body.userCounts).toBeDefined();
+  });
+});
+
+describe("AUTHZ-01: create Ticket (Lab 4 decision: staff may create for themselves)", () => {
+  const payload = async () => ({
+    summary: "Staff created ticket",
+    description: "Created by staff for themselves.",
+    categoryId: (await prisma.category.findFirst({ where: { isActive: true } }))!.id,
+    requestedPriority: "LOW",
+  });
+  it("401 anonymous, 201 for Requester, IT Staff and Administrator", async () => {
+    expect((await request(app).post("/api/v1/tickets").send(await payload())).status).toBe(401);
+    for (const who of [owner, staff, admin]) {
+      expect((await request(app).post("/api/v1/tickets").set("Cookie", who).send(await payload())).status).toBe(201);
+    }
+  });
+  it("sets requesterId to the session user, ignoring the body", async () => {
+    const res = await request(app)
+      .post("/api/v1/tickets")
+      .set("Cookie", staff)
+      .send({ ...(await payload()), requesterId: staffId + 999 });
+    expect(res.status).toBe(201);
+    expect(res.body.requesterId).toBe(staffId);
   });
 });

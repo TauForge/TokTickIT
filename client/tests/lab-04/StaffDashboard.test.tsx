@@ -27,7 +27,7 @@ describe("Staff dashboard (UI-03)", () => {
     }
   });
 
-  it("cards are real links with accessible names and the spec 6.3 drill-down URLs", async () => {
+  it("cards are real links with accessible names and the spec 5.4 drill-down URLs", async () => {
     routeFetch(amy, [dashboardRoute()]);
     renderStaffDashboard();
     await screen.findByRole("heading", { name: /welcome back/i });

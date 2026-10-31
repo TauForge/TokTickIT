@@ -70,9 +70,11 @@ describe("Accessibility (A11Y-01)", () => {
     renderStaffDashboard();
     const alert = await screen.findByRole("alert");
     expect(alert).toBeInTheDocument();
-    const retry = screen.getByRole("button", { name: "Retry" });
-    retry.focus();
-    expect(retry).toHaveFocus();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+    // The retry fails again; the button is disabled while it runs, then must get focus back.
+    await waitFor(() => expect(screen.getByRole("button", { name: "Retry" })).toBeEnabled());
+    expect(screen.getByRole("button", { name: "Retry" })).toHaveFocus();
   });
 
   it("metric links have accessible names that include the metric and are keyboard reachable", async () => {
@@ -137,5 +139,35 @@ describe("Accessibility (A11Y-01)", () => {
     await waitFor(() => expect(within(form).getByLabelText("Description")).toHaveFocus());
     expect(within(form).getByLabelText("Description")).toHaveAttribute("aria-invalid", "true");
     expect(within(panel).getAllByRole("alert").length).toBeGreaterThan(0);
+  });
+  it("moves focus into the form on Add Action and back to the panel heading on Cancel", async () => {
+    routeFetch(amy, [
+      on("GET", /\/staff\/tickets\/t1\/actions$/, () => ({ body: [makeAction()] })),
+      on("GET", /\/staff\/tickets\/t1$/, () => ({ body: staffTicket })),
+    ]);
+    const user = userEvent.setup();
+    renderStaffDetail();
+    await screen.findByText("TKT-2026-000001");
+    await user.click(screen.getByRole("tab", { name: /actions taken/i }));
+    const panel = await screen.findByTestId("actions-taken-panel");
+
+    await user.click(await within(panel).findByRole("button", { name: /add action/i }));
+    expect(within(panel).getByLabelText("Action Date/Time")).toHaveFocus();
+    await user.click(within(panel).getByRole("button", { name: /cancel/i }));
+    expect(within(panel).getByRole("heading", { name: "Actions Taken" })).toHaveFocus();
+  });
+
+  it("labels every Actions Taken cell so the mobile card layout keeps its meaning", async () => {
+    routeFetch(amy, [
+      on("GET", /\/staff\/tickets\/t1\/actions$/, () => ({ body: [makeAction()] })),
+      on("GET", /\/staff\/tickets\/t1$/, () => ({ body: staffTicket })),
+    ]);
+    const user = userEvent.setup();
+    renderStaffDetail();
+    await screen.findByText("TKT-2026-000001");
+    await user.click(screen.getByRole("tab", { name: /actions taken/i }));
+    const panel = await screen.findByTestId("actions-taken-panel");
+    const labels = Array.from((await within(panel).findAllByRole("row"))[1].querySelectorAll("td[data-label]")).map((td) => td.getAttribute("data-label"));
+    expect(labels).toEqual(["Date/Time", "Performed by", "Result", "Follow-up", "Description", "Attachment notes"]);
   });
 });

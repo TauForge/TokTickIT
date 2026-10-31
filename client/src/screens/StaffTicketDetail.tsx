@@ -57,7 +57,7 @@ interface InternalNoteDto {
 const ROLE_TAG: Record<string, string> = { REQUESTER: "Requester", IT_STAFF: "IT Staff", ADMINISTRATOR: "Administrator" };
 const PRIORITIES = ["LOW", "MEDIUM", "HIGH"];
 
-// lab-04 ui-spec.md section 4 / specification 6.1: the client-side status list is UX guidance only; the
+// lab-04 ui-spec.md section 4 / specification 5.2: the client-side status list is UX guidance only; the
 // server's isValidTransition is the security boundary and rejects anything not truly valid.
 const STATUS_OPTIONS: Record<string, string[]> = {
   NEW: ["CANCELLED"],

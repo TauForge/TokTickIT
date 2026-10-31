@@ -22,6 +22,19 @@ export function ActionsTakenPanel({ ticketId, currentUser, onCountChange }: Prop
   const [formKey, setFormKey] = useState(0);
   const [discarded, setDiscarded] = useState<ActionDraft | null>(null);
   const idempotencyKey = useRef<string | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const modeChanged = useRef(false);
+
+  // Focus management: the control that opened a mode unmounts with it, so without this focus
+  // falls back to the page body. Forms focus their first field; list/view focus the heading.
+  useEffect(() => {
+    if (!modeChanged.current) {
+      modeChanged.current = true;
+      return;
+    }
+    const target = mode.kind === "create" || mode.kind === "edit" ? "#action-at" : "h2";
+    panelRef.current?.querySelector<HTMLElement>(target)?.focus();
+  }, [mode.kind]);
 
   const load = useCallback(async () => {
     try {
@@ -78,8 +91,10 @@ export function ActionsTakenPanel({ ticketId, currentUser, onCountChange }: Prop
   const canEdit = (a: ActionDto) => a.performedBy.id === currentUser.id || currentUser.role === "ADMINISTRATOR";
 
   return (
-    <div className="zg-comments-panel" data-testid="actions-taken-panel">
-      <h2 className="h6">Actions Taken</h2>
+    <div ref={panelRef} className="zg-comments-panel" data-testid="actions-taken-panel">
+      <h2 className="h6" tabIndex={-1}>
+        Actions Taken
+      </h2>
       <div role="status" aria-live="polite" className="visually-hidden">
         {announcement}
       </div>

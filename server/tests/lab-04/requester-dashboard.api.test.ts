@@ -3,7 +3,7 @@ import request from "supertest";
 import { app } from "../../src/app";
 import { prisma } from "../../src/prisma";
 
-// API-17..19: Requester dashboard (specification 6.3, BR-19..22). Every metric is checked against an
+// API-17..19: Requester dashboard (specification 5.4, BR-19..22). Every metric is checked against an
 // independent raw SQL query, not against the route's own Prisma calls.
 const PASSWORD = "DevPass123!";
 const STATUSES = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"] as const;

@@ -9,7 +9,7 @@ export type TicketStatus =
   | "REOPENED"
   | "CANCELLED";
 
-// lab-04 specification.md 6.1 (refines Lab 3 §9). NEW->OPEN and REOPENED->OPEN are automatic (triggered by ownership
+// lab-04 specification.md 5.2 (refines Lab 3 §9). NEW->OPEN and REOPENED->OPEN are automatic (triggered by ownership
 // assignment) and are deliberately NOT listed as a target here — isValidTransition() only
 // backs the client-requestable PATCH .../status transitions.
 const STATUS_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
