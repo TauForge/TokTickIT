@@ -12,7 +12,7 @@ test.describe("Authentication (E2E-01)", () => {
     await page.getByLabel(/email/i).fill("jennifer.anderson@toktickit.dev");
     await page.getByLabel(/password/i).fill("DevPass123!");
     await page.getByRole("button", { name: /sign in/i }).click();
-    await expect(page.getByRole("heading", { name: /my tickets/i })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: /welcome/i })).toBeVisible();
 
     await page.getByRole("button", { name: /logout/i }).click();
     await expect(page.getByRole("button", { name: /sign in/i })).toBeVisible();

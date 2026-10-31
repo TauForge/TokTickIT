@@ -54,7 +54,7 @@ for (const [name, size] of Object.entries(VIEWPORTS)) {
     await page.getByLabel(/email/i).fill("amy.tran@toktickit.dev");
     await page.getByLabel(/password/i).fill("DevPass123!");
     await page.getByRole("button", { name: /sign in/i }).click();
-    await page.getByRole("link", { name: /my queue/i }).click();
+    await page.getByRole("navigation", { name: /main/i }).getByRole("link", { name: /my queue/i }).click();
     await assertNoHorizontalOverflow(page);
     await page.screenshot({ path: `../artifacts/lab-03/screenshots/staff-queue/${name}.png`, fullPage: true });
   });
@@ -65,7 +65,7 @@ for (const [name, size] of Object.entries(VIEWPORTS)) {
     await page.getByLabel(/email/i).fill("amy.tran@toktickit.dev");
     await page.getByLabel(/password/i).fill("DevPass123!");
     await page.getByRole("button", { name: /sign in/i }).click();
-    await page.getByRole("link", { name: /my queue/i }).click();
+    await page.getByRole("navigation", { name: /main/i }).getByRole("link", { name: /my queue/i }).click();
     await page.locator("table.zg-table a").first().click();
     await assertNoHorizontalOverflow(page);
     await page.screenshot({ path: `../artifacts/lab-03/screenshots/staff-ticket-detail/${name}.png`, fullPage: true });
