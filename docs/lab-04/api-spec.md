@@ -76,7 +76,7 @@ per request (BR-19). Empty data returns zeros and empty arrays, never an error.
 ## 4. Status codes used
 200 OK, 201 Created, 401 unauthenticated, 403 wrong role or not the performer, 404 not found or not owned (never
 403 for another Requester's data), 409 conflict (STALE_UPDATE, TICKET_LOCKED, INVALID_STATUS_TRANSITION,
-RESOLUTION_REQUIRES_ACTION, INVALID_OWNER, SELF_DEACTIVATION_BLOCKED, LAST_ADMIN_PROTECTED, EMAIL_ALREADY_EXISTS),
+RESOLUTION_REQUIRES_ACTION, IDEMPOTENCY_KEY_REUSED, INVALID_OWNER, SELF_DEACTIVATION_BLOCKED, LAST_ADMIN_PROTECTED, EMAIL_ALREADY_EXISTS),
 422 validation (including VERSION_REQUIRED), 500 unexpected with a generic message.
 
 ## 5. Endpoint notes an implementer will otherwise get wrong
@@ -85,6 +85,7 @@ RESOLUTION_REQUIRES_ACTION, INVALID_OWNER, SELF_DEACTIVATION_BLOCKED, LAST_ADMIN
 - Resolution gate and the status write share one transaction, so a concurrent Action insert cannot be lost.
 - Version check is `UPDATE ... WHERE id = ? AND version = ?` with `version = version + 1`; zero rows updated means
   STALE_UPDATE. Never read-then-write without the guard.
+- A key reused by the same performer on a different Ticket returns 409 IDEMPOTENCY_KEY_REUSED, never the other Ticket's Action.
 - Idempotent repeat returns 200 with the original Action; a different payload under the same key still returns
   the original (the key identifies the request, not the body).
 - `activeOnly` and `status` can combine; `status` wins if it names a non-active status.
