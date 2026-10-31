@@ -53,7 +53,7 @@ Final column starts as "Planned" and changes only after the suite has actually r
 | UI-04 | UI | FR-14, AC-02 | Requester dashboard cards, links, states | per state | client/tests/lab-04/RequesterDashboard.test.tsx | Pass (9 tests, 2026-10-31) |
 | STYLE-01 | UI style | ui-spec | Zen Green classes, badges, no ad hoc styling | present | client/tests/lab-04/zenGreenStyleLab4.test.tsx | Pass (6 tests, 2026-10-31) |
 | A11Y-01 | Accessibility | AC-28 | aria-current, labels, live region, focus, text status cues | present | client/tests/lab-04/accessibility.test.tsx | Pass (10 tests; the Retry focus test documents the behaviour and also passes without the source change in jsdom, so it does not by itself prove the fix) |
-| VISUAL-01 | Responsive/visual | AC-27 | 3 viewports, no overflow, screenshots saved | saved, checklist true | e2e/lab-04/dashboards.spec.ts | Partial: 9 screenshots saved and all viewed, overflow asserted at 1280/820/390; validation placement and keyboard focus ring not yet evidenced in screenshots (section 4) |
+| VISUAL-01 | Responsive/visual | AC-27 | 3 viewports, no overflow, screenshots saved | saved, checklist true | e2e/lab-04/dashboards.spec.ts | Pass: 9 screenshots saved and all viewed, overflow asserted at 1280/820/390; validation placement and keyboard focus ring evidenced by two extra screenshots (section 4) |
 | E2E-01 | E2E | AC-01, AC-03, AC-25 | staff adds, edits Actions; Requester sees them | full flow | e2e/lab-04/actions-taken-flow.spec.ts | Pass (2026-10-31) |
 | E2E-02 | E2E | AC-11, AC-14, AC-15 | resolve gate, reopen, stale conflict between two sessions | full flow | e2e/lab-04/ticket-resolution.spec.ts | Pass (2 tests incl. two-session stale conflict, 2026-10-31) |
 | E2E-03 | E2E | AC-02, AC-19, AC-22 | dashboards per role, drill-down opens filtered lists | full flow | e2e/lab-04/dashboards.spec.ts | Pass (3 tests, 2026-10-31) |
@@ -75,10 +75,10 @@ Screenshots are in `artifacts/lab-04/screenshots/{staff-dashboard,requester-dash
   and priority counts were blue and are now Zen Green)
 - [x] Role navigation correct for Requester, IT Staff, Administrator; active page indicated (A11Y-01, E2E-03, screenshots)
 - [x] Editable vs read-only fields visually distinct (beige read-only rows vs white inputs on the actions-taken shots)
-- [ ] Validation messages placed under fields and summarized: covered by UI-01 and E2E-01 assertions, not captured in a
-  screenshot, so not ticked
-- [ ] Keyboard focus visible and logical: focus moves are tested (A11Y-01) but the focus ring was not captured or
-  checked by eye, so not ticked
+- [x] Validation messages placed under fields and summarized: `actions-taken/validation-errors.png` shows the linked
+  summary above the form and each message under its field (captured and viewed 2026-10-31)
+- [x] Keyboard focus visible and logical: `staff-dashboard/keyboard-focus-ring.png` shows the 2px Zen Green outline on
+  the New card View link after Tab (captured and viewed 2026-10-31; focus moves are also tested in A11Y-01)
 - [x] No clipped text, overlapping controls or hidden buttons at 390/820/1280 (all nine screenshots viewed)
 - [x] No horizontal overflow at 390 (asserted by dashboards.spec.ts for all nine screenshots, also at 820 and 1280)
 - [x] Status never conveyed by color alone (badges carry text; follow-up shows "Follow-up needed")
@@ -103,7 +103,8 @@ dev servers and `toktickit_test`.
 | Client type check and build | `npx tsc -b`, `npx vite build` | no errors, build succeeded |
 | E2E | `cd e2e && npx playwright test` | 46 passed (Lab 2, Lab 3 and Lab 4 specs) |
 
-The final run on `main` after the release PR merges is recorded in the submission PDF.
+Run on `main` (8c9766c) after the release PR merged, 2026-10-31: server 42 files, 406 tests passed; client 18 files,
+94 tests passed; E2E 46 passed. The full output is in the submission PDF (Answer Part 3).
 
 Intentional test changes in this task:
 - `client/tests/lab-01/App.test.tsx` no longer uses `localStorage.clear()` (undefined in this jsdom) and asserts the
