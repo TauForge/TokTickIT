@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { Link, MemoryRouter } from "react-router-dom";
+import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AuthProvider } from "../../src/api/authContext";
 import { MyTickets } from "../../src/screens/MyTickets";
@@ -86,5 +87,30 @@ describe("Dashboard drill-down filters", () => {
     );
     expect(await screen.findByText("TKT-1")).toBeInTheDocument();
     expect(new URL(seen[seen.length - 1], "http://x").searchParams.get("activeOnly")).toBe("true");
+  });
+
+  it("follows a URL change while already on the list, and moves focus to the heading (review on PR #53)", async () => {
+    const seen: string[] = [];
+    routeFetch(jennifer, [
+      on("GET", /\/api\/v1\/tickets\?/, (call) => {
+        seen.push(call.url);
+        return { body: { items: [row("1", "OPEN")], page: 1, pageSize: 10, totalItems: 1, totalPages: 1 } };
+      }),
+    ]);
+    render(
+      <AuthProvider>
+        <MemoryRouter initialEntries={["/tickets?status=RESOLVED"]}>
+          <Link to="/tickets?status=CLOSED">Closed card</Link>
+          <MyTickets />
+        </MemoryRouter>
+      </AuthProvider>,
+    );
+    expect(await screen.findByText("TKT-1")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "My Tickets" })).toHaveFocus();
+
+    await userEvent.click(screen.getByRole("link", { name: "Closed card" }));
+
+    await waitFor(() => expect(new URL(seen[seen.length - 1], "http://x").searchParams.get("status")).toBe("CLOSED"));
+    expect(screen.getByLabelText("Current Status")).toHaveValue("CLOSED");
   });
 });
