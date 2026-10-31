@@ -62,7 +62,7 @@ function validateMerged(raw: Record<string, unknown>, ctx: ActionContext): Actio
       errors.push({ field: "actionAt", message: "Must be a valid date and time." });
     } else if (parsed.getTime() > ctx.now.getTime() + FUTURE_TOLERANCE_MS) {
       errors.push({ field: "actionAt", message: "Cannot be more than 5 minutes in the future." });
-    } else if (parsed.getTime() < ctx.ticketCreatedAt.getTime()) {
+    } else if (parsed.getTime() < floorToMinute(ctx.ticketCreatedAt)) {
       errors.push({ field: "actionAt", message: "Cannot be earlier than the ticket's creation." });
     } else {
       actionAt = parsed;
@@ -71,6 +71,12 @@ function validateMerged(raw: Record<string, unknown>, ctx: ActionContext): Actio
 
   if (errors.length) return { ok: false, errors };
   return { ok: true, value: { description, result, followUpRequired, followUpNote, attachmentNotes, actionAt } };
+}
+
+// The Action form's datetime-local input has minute precision, so a "now" default typed within
+// the minute a Ticket was created sorts before its seconds. Creation is compared at minute precision.
+function floorToMinute(date: Date): number {
+  return Math.floor(date.getTime() / 60_000) * 60_000;
 }
 
 export function validateActionCreate(body: unknown, ctx: ActionContext): ActionValidationResult<ActionFields> {

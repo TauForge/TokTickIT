@@ -72,7 +72,8 @@ BR-02 The Ticket Owner coordinates the Ticket, but an Action Taken may be perfor
 Administrator user, not only the owner.
 BR-03 Performed by is always the authenticated user; a client-supplied performer is ignored.
 BR-04 Action date/time defaults to the server time at creation. A client may supply it, but it must not be later
-than server time plus 5 minutes and not earlier than the Ticket's creation time (422 otherwise).
+than server time plus 5 minutes and not earlier than the Ticket's creation time, compared at minute precision because the form's date/time input has
+no seconds (422 otherwise).
 BR-05 Description is required, 1-2000 characters after trimming. Result is required, 1-1000 characters. Attachment
 notes are optional, up to 500 characters.
 BR-06 Follow-up required is a boolean, default false. When true, follow-up note is required (1-1000 characters).

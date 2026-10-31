@@ -82,6 +82,14 @@ describe("UNIT-02: action date window (BR-04)", () => {
     expect(validateActionCreate({ ...valid, actionAt: new Date(ticketCreatedAt.getTime() - 1).toISOString() }, ctx).ok).toBe(false);
   });
 
+  it("compares creation at minute precision so a form default within the creation minute is accepted", () => {
+    const created = new Date("2026-10-30T10:00:45.000Z");
+    const sameMinute = new Date("2026-10-30T10:00:00.000Z").toISOString();
+    const previousMinute = new Date("2026-10-30T09:59:59.999Z").toISOString();
+    expect(validateActionCreate({ ...valid, actionAt: sameMinute }, { ...ctx, ticketCreatedAt: created }).ok).toBe(true);
+    expect(validateActionCreate({ ...valid, actionAt: previousMinute }, { ...ctx, ticketCreatedAt: created }).ok).toBe(false);
+  });
+
   it("rejects an unparseable date", () => {
     expect(validateActionCreate({ ...valid, actionAt: "not a date" }, ctx).ok).toBe(false);
   });
