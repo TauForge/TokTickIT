@@ -6,6 +6,7 @@ import { prisma } from "../../src/prisma";
 
 const MIGRATIONS_DIR = path.resolve(__dirname, "../../prisma/migrations");
 const LAB4_DIR = readdirSync(MIGRATIONS_DIR).find((d) => d.endsWith("_lab4_actions_taken")) ?? "missing_lab4_dir";
+const INDEX_DIR = readdirSync(MIGRATIONS_DIR).find((d) => d.endsWith("_lab4_dashboard_indexes")) ?? "missing_index_dir";
 const SCRATCH_DB = "toktickit_mig_scratch_test";
 
 const baseUrl = new URL(process.env.DATABASE_URL!);
@@ -65,6 +66,27 @@ describe("MIG-01: migration on a Lab 3 database (AC-23, BR-23)", () => {
   it("is recorded in the test database through prisma migrate deploy", async () => {
     const rows = await prisma.$queryRaw<{ migration_name: string }[]>`SELECT migration_name FROM _prisma_migrations WHERE migration_name = ${LAB4_DIR}`;
     expect(rows).toHaveLength(1);
+  });
+});
+
+describe("MIG-03: dashboard index migration (specification section 8)", () => {
+  const names = ["Ticket_ownerId_status_idx", "Ticket_updatedAt_idx", "ActionTaken_performedById_actionAt_idx"];
+  const present = () => Number(sql(`SELECT count(*) FROM pg_indexes WHERE indexname IN (${names.map((n) => `'${n}'`).join(",")})`));
+
+  it("adds exactly the three indexes without touching rows, and its rollback removes them", () => {
+    const afterLab4 = shape();
+    const rows = sql(`SELECT (SELECT count(*) FROM "Ticket") || ',' || (SELECT count(*) FROM "User")`);
+    file(`${INDEX_DIR}/migration.sql`);
+    expect(present()).toBe(3);
+    expect(sql(`SELECT (SELECT count(*) FROM "Ticket") || ',' || (SELECT count(*) FROM "User")`)).toBe(rows);
+    file(`${INDEX_DIR}/rollback.sql`);
+    expect(present()).toBe(0);
+    expect(shape()).toBe(afterLab4);
+  });
+
+  it("is recorded in the test database through prisma migrate deploy", async () => {
+    const recorded = await prisma.$queryRaw<{ migration_name: string }[]>`SELECT migration_name FROM _prisma_migrations WHERE migration_name = ${INDEX_DIR}`;
+    expect(recorded).toHaveLength(1);
   });
 });
 

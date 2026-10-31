@@ -16,6 +16,7 @@ import { staffNotesRouter } from "./routes/staffNotes";
 import { staffTicketsRouter } from "./routes/staffTickets";
 import { staffAttachmentsRouter } from "./routes/staffAttachments";
 import { requesterActionsRouter, staffActionsRouter } from "./routes/actions";
+import { dashboardRouter } from "./routes/dashboard";
 import { adminUsersRouter } from "./routes/adminUsers";
 import { errorEnvelope } from "./middleware/errorEnvelope";
 
@@ -57,6 +58,7 @@ app.use("/api/v1/staff/tickets/:ticketId/notes", staffNotesRouter);
 app.use("/api/v1/staff/tickets/:ticketId/attachments", staffAttachmentsRouter);
 app.use("/api/v1/staff/tickets/:ticketId/actions", staffActionsRouter);
 app.use("/api/v1/staff/tickets", staffTicketsRouter);
+app.use("/api/v1/dashboard", dashboardRouter);
 app.use("/api/v1/admin/users", adminUsersRouter);
 
 app.use(errorEnvelope);

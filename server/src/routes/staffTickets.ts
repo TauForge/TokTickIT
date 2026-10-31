@@ -2,6 +2,7 @@ import { Router } from "express";
 import type { Prisma, TicketStatus as PrismaTicketStatus } from "@prisma/client";
 import { prisma } from "../prisma";
 import { requireAuth, requireRole, blockIfPasswordChangeRequired } from "../middleware/auth";
+import { ACTIVE_STATUSES } from "../services/dashboards";
 import { parseStaffTicketQuery } from "../validators/staffTicketQuery";
 import { HttpError } from "../middleware/errorEnvelope";
 import { isTerminal, isValidTransition, TicketStatus } from "../services/ticketStatusTransitions";
@@ -46,7 +47,12 @@ staffTicketsRouter.get("/", ...staffGate, async (req, res, next) => {
     const query = parseStaffTicketQuery(req.query as Record<string, unknown>);
 
     const where = {
-      ...(query.status ? { status: query.status as PrismaTicketStatus } : {}),
+      // Api-spec 2: `status` wins over `activeOnly` when both are present.
+      ...(query.status
+        ? { status: query.status as PrismaTicketStatus }
+        : query.activeOnly
+          ? { status: { in: ACTIVE_STATUSES } }
+          : {}),
       ...(query.itPriority ? { itPriority: query.itPriority } : {}),
       ...(query.ownerId === "unassigned"
         ? { ownerId: null }

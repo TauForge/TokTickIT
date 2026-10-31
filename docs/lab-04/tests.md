@@ -34,15 +34,16 @@ Final column starts as "Planned" and changes only after the suite has actually r
 | API-15 | API | AC-16 | missing expectedVersion on owner/priority/status/Action PATCH | 422 VERSION_REQUIRED | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-31) |
 | API-16 | API | BR-15 | Requester status write | 403 | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-31) |
 | API-26 | API | AC-11, BR-13 | racing Action create vs move to RESOLVED (PR #50 review) | never RESOLVED with zero Actions | server/tests/lab-04/ticket-workflow.api.test.ts | Pass |
-| API-17 | API | AC-02, BR-19 | Requester dashboard scoping | only own Tickets counted/listed | server/tests/lab-04/requester-dashboard.api.test.ts | Planned |
-| API-18 | API | AC-20 | Requester with no Tickets | zeros, empty lists, 200 | server/tests/lab-04/requester-dashboard.api.test.ts | Planned |
-| API-19 | API | AC-19 | each Requester metric vs SQL | equal | server/tests/lab-04/requester-dashboard.api.test.ts | Planned |
-| API-20 | API | AC-19, AC-21 | staff metrics vs SQL, drill-down list equality | equal; Requester 403, anon 401 | server/tests/lab-04/staff-dashboard.api.test.ts | Planned |
-| API-21 | API | AC-22 | Administrator userCounts present, staff absent | as stated | server/tests/lab-04/staff-dashboard.api.test.ts | Planned |
-| API-22 | API | AC-20 | empty database staff dashboard | zeros, 200 | server/tests/lab-04/staff-dashboard.api.test.ts | Planned |
-| API-23 | API | FR-18 | queue `activeOnly` and `ownerId` | correct subset | server/tests/lab-04/staff-dashboard.api.test.ts | Planned |
-| AUTHZ-01 | Authorization | 6.2 matrix | every role x every Lab 4 endpoint | codes exactly as matrix | server/tests/lab-04/authorization.api.test.ts | Pass (actions and ticket write endpoints so far, 2026-10-31) |
-| PERF-01 | Performance smoke | BR-22 | dashboards on seeded plus 2,000 Tickets | each responds under 500 ms locally | server/tests/lab-04/performance.smoke.test.ts | Planned |
+| API-17 | API | AC-02, BR-19 | Requester dashboard scoping | only own Tickets counted/listed | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-31) |
+| API-18 | API | AC-20 | Requester with no Tickets | zeros, empty lists, 200 | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-31) |
+| API-19 | API | AC-19 | each Requester metric vs SQL | equal | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-31) |
+| API-20 | API | AC-19, AC-21 | staff metrics vs SQL, drill-down list equality | equal; Requester 403, anon 401 | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-31) |
+| API-21 | API | AC-22 | Administrator userCounts present, staff absent | as stated | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-31) |
+| API-22 | API | AC-20 | empty database staff dashboard | zeros, 200 | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-31) |
+| API-23 | API | FR-18 | queue `activeOnly` and `ownerId` | correct subset | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-31) |
+| API-27 | API | FR-14, BR-22a | Requester list status filter, unknown status, activeOnly equals myOpen (PR #51 review) | 200 per status, 422 for unknown, counts equal | server/tests/lab-04/requester-dashboard.api.test.ts | Pass |
+| AUTHZ-01 | Authorization | 6.2 matrix | every role x every Lab 4 endpoint | codes exactly as matrix | server/tests/lab-04/authorization.api.test.ts | Pass (actions, ticket write and dashboard endpoints, 2026-10-31) |
+| PERF-01 | Performance smoke | BR-22 | dashboards on seeded plus 2,000 Tickets | each responds under 2 s locally (smoke bound, widened after PR #51 review) | server/tests/lab-04/performance.smoke.test.ts | Pass (2026-10-31) |
 | REG-01 | Regression | AC-30, FR-25 | Lab 1, 2, 3 server suites | all pass (documented BR-17 updates only) | server/tests/lab-01..03/ | Planned |
 | UI-01 | UI | AC-25, AC-26 | Actions Taken list, create, edit, validation, data kept | per state | client/tests/lab-04/ActionsTaken.test.tsx | Planned |
 | UI-02 | UI | AC-25, AC-15 | status control, gate callout, stale callout, summary refresh | per state | client/tests/lab-04/TicketWorkflow.test.tsx | Planned |
