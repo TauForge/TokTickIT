@@ -24,6 +24,8 @@ Final column starts as "Planned" and changes only after the suite has actually r
 | API-07 | API | AC-10, BR-07 | DELETE Action | 404, row still present | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
 | API-08 | API | AC-18, BR-09 | Action on CANCELLED Ticket | 409 TICKET_LOCKED | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
 | API-09 | API | AC-17, BR-18 | same Idempotency-Key twice | one row, second 200 original | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
+| API-24 | API | AC-17, BR-18 | same key on a different Ticket (PR #49 review) | 409 IDEMPOTENCY_KEY_REUSED, no row on second Ticket | server/tests/lab-04/actions-taken.api.test.ts | Pass |
+| API-25 | API | AC-18, BR-09 | Ticket closes while create/edit is in flight (PR #49 review) | 409 TICKET_LOCKED, nothing written | server/tests/lab-04/actions-taken.api.test.ts | Pass |
 | API-10 | API | AC-11, BR-13 | resolve with 0 then 1 Action | 409 then 200 | server/tests/lab-04/ticket-workflow.api.test.ts | Planned |
 | API-11 | API | AC-12, BR-14 | advisory flag does not resolve or pass gate | status unchanged, gate still 409 | server/tests/lab-04/ticket-workflow.api.test.ts | Planned |
 | API-12 | API | AC-13 | every status pair through PATCH | valid 200, others 409 correct code | server/tests/lab-04/ticket-workflow.api.test.ts | Planned |
