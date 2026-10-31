@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { apiGet } from "../api/apiClient";
+import { formatBangkok } from "../utils/bangkokTime";
 import { PriorityBadge, STATUS_LABEL, StatusBadge } from "../components/badges";
 
 interface TicketRow {
@@ -32,7 +33,9 @@ const PRIORITIES = ["LOW", "MEDIUM", "HIGH"];
 const STATUSES = Object.keys(STATUS_LABEL);
 
 export function MyTickets() {
-  const [initial] = useSearchParams();
+  const [searchParams] = useSearchParams();
+  const initial = searchParams;
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const [data, setData] = useState<TicketListResponse | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState("");
@@ -41,11 +44,25 @@ export function MyTickets() {
   const [itPriority, setItPriority] = useState("");
   const [status, setStatus] = useState(() => (STATUSES.includes(initial.get("status") ?? "") ? initial.get("status")! : ""));
   // "My Open" drill-down: the server applies the same open set the dashboard card counted.
-  const [activeOnly] = useState(() => initial.get("activeOnly") === "true");
+  const [activeOnly, setActiveOnly] = useState(() => initial.get("activeOnly") === "true");
   const [sort, setSort] = useState<"createdAt" | "updatedAt">("createdAt");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
+
+  // Clicking another dashboard card while already on this list changes the URL, so the filters follow it.
+  useEffect(() => {
+    const next = searchParams.get("status") ?? "";
+    setStatus(STATUSES.includes(next) ? next : "");
+    setActiveOnly(searchParams.get("activeOnly") === "true");
+    setPage(1);
+  }, [searchParams]);
+
+  // Arriving from a dashboard card: move focus to the list heading so keyboard and screen-reader users land on it.
+  const loaded = Boolean(data);
+  useEffect(() => {
+    if (loaded) headingRef.current?.focus();
+  }, [loaded]);
 
   useEffect(() => {
     apiGet<Category[]>("/api/categories")
@@ -101,7 +118,9 @@ export function MyTickets() {
 
   return (
     <main className="container py-5">
-      <h1 className="h4 mb-3">My Tickets</h1>
+      <h1 ref={headingRef} tabIndex={-1} className="h4 mb-3">
+        My Tickets
+      </h1>
 
       <div className="row g-2 align-items-end mb-3">
         <div className="col-auto">
@@ -284,7 +303,7 @@ export function MyTickets() {
                   <td>
                     <Link to={`/tickets/${ticket.id}`}>{ticket.ticketNumber}</Link>
                   </td>
-                  <td>{new Date(ticket.createdAt).toLocaleString()}</td>
+                  <td>{formatBangkok(ticket.createdAt)}</td>
                   <td>{ticket.summary}</td>
                   <td>{ticket.categoryName}</td>
                   <td>
@@ -296,7 +315,7 @@ export function MyTickets() {
                   <td>
                     <StatusBadge value={ticket.status} />
                   </td>
-                  <td>{new Date(ticket.updatedAt).toLocaleString()}</td>
+                  <td>{formatBangkok(ticket.updatedAt)}</td>
                 </tr>
               ))}
             </tbody>

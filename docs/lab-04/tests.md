@@ -48,6 +48,7 @@ Final column starts as "Planned" and changes only after the suite has actually r
 | UI-01 | UI | AC-25, AC-26 | Actions Taken list, create, edit, validation, data kept | per state | client/tests/lab-04/ActionsTaken.test.tsx | Pass (12 tests, 2026-10-31) |
 | UI-02 | UI | AC-25, AC-15 | status control, gate callout, stale callout, summary refresh | per state | client/tests/lab-04/TicketWorkflow.test.tsx | Pass (7 tests, 2026-10-31) |
 | UI-05 | UI | AC-15, AC-26 | PR #52 review: Reload resets to latest values, actionAt omitted when untouched, controls locked in flight | per behavior | client/tests/lab-04/ActionsTaken.test.tsx, TicketWorkflow.test.tsx | Pass |
+| UI-06 | UI | FR-14, FR-15 | PR #53 review: list filters follow a URL change on the same screen, focus lands on the list heading | per behavior | client/tests/lab-04/drillDown.test.tsx | Pass |
 | UI-03 | UI | FR-15, AC-20, AC-29 | Staff dashboard cards, links, states | per state | client/tests/lab-04/StaffDashboard.test.tsx | Pass (12 tests, 2026-10-31) |
 | UI-04 | UI | FR-14, AC-02 | Requester dashboard cards, links, states | per state | client/tests/lab-04/RequesterDashboard.test.tsx | Pass (9 tests, 2026-10-31) |
 | STYLE-01 | UI style | ui-spec | Zen Green classes, badges, no ad hoc styling | present | client/tests/lab-04/zenGreenStyleLab4.test.tsx | Pass (6 tests, 2026-10-31) |

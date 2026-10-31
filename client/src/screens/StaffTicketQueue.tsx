@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../api/authContext";
+import { formatBangkok } from "../utils/bangkokTime";
 import { apiGet, ApiRequestError } from "../api/apiClient";
 import { PriorityBadge, StatusBadge } from "../components/badges";
 
@@ -29,7 +30,9 @@ const PRIORITIES = ["LOW", "MEDIUM", "HIGH"];
 export function StaffTicketQueue() {
   const { user } = useAuth();
   // Dashboard drill-down links (specification 5.4) arrive as ?status=&itPriority=&ownerId=&activeOnly=true.
-  const [initial] = useSearchParams();
+  const [searchParams] = useSearchParams();
+  const initial = searchParams;
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const [result, setResult] = useState<StaffTicketPage | null>(null);
   const [forbidden, setForbidden] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +47,24 @@ export function StaffTicketQueue() {
   const [sort, setSort] = useState<"createdAt" | "updatedAt">("createdAt");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
+
+  // Clicking another dashboard card while already on this list changes the URL, so the filters follow it.
+  useEffect(() => {
+    const s = searchParams.get("status") ?? "";
+    const p = searchParams.get("itPriority") ?? "";
+    const o = searchParams.get("ownerId") ?? "";
+    setStatus(STATUSES.includes(s) ? s : "");
+    setItPriority(PRIORITIES.includes(p) ? p : "");
+    setOwnerId(o === "unassigned" || /^\d+$/.test(o) ? o : "");
+    setActiveOnly(searchParams.get("activeOnly") === "true");
+    setPage(1);
+  }, [searchParams]);
+
+  // Arriving from a dashboard card: move focus to the list heading.
+  const loaded = Boolean(result);
+  useEffect(() => {
+    if (loaded) headingRef.current?.focus();
+  }, [loaded]);
 
   useEffect(() => {
     const params = new URLSearchParams({ page: String(page), sort, order });
@@ -105,7 +126,9 @@ export function StaffTicketQueue() {
 
   return (
     <main className="container py-5">
-      <h1 className="h4 mb-3">My Queue</h1>
+      <h1 ref={headingRef} tabIndex={-1} className="h4 mb-3">
+        My Queue
+      </h1>
 
       <div className="row g-2 align-items-end mb-3">
         <div className="col-auto">
@@ -256,7 +279,7 @@ export function StaffTicketQueue() {
                   <td>
                     <Link to={`/staff/tickets/${ticket.id}`}>{ticket.ticketNumber}</Link>
                   </td>
-                  <td>{new Date(ticket.createdAt).toLocaleString()}</td>
+                  <td>{formatBangkok(ticket.createdAt)}</td>
                   <td>{ticket.summary}</td>
                   <td>{ticket.categoryName}</td>
                   <td>
