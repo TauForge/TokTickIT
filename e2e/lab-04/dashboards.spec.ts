@@ -24,6 +24,21 @@ test.describe("Dashboards (E2E-03)", () => {
     await page.getByRole("link", { name: /view all in progress tickets/i }).click();
     await expect(page).toHaveURL(/\/tickets\?status=IN_PROGRESS/);
     await expect(page.getByRole("heading", { name: /my tickets/i })).toBeVisible();
+    // The list behind the card is actually filtered, not just navigated to.
+    await expect(page.getByRole("heading", { name: /my tickets/i })).toBeFocused();
+    const rows = await page.locator("table tbody tr").allTextContents();
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) expect(row).toContain("In Progress");
+  });
+
+  test("My Open card links to a list with only open-set tickets", async ({ page }) => {
+    await signIn(page, REQUESTER);
+    await page.getByRole("link", { name: /view all my open tickets/i }).click();
+    await expect(page).toHaveURL(/\/tickets\?activeOnly=true/);
+    await expect(page.getByRole("heading", { name: /my tickets/i })).toBeFocused();
+    const rows = await page.locator("table tbody tr").allTextContents();
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) expect(row).not.toMatch(/Resolved|Closed|Cancelled/);
   });
 
   test("Staff dashboard drill-down opens the filtered queue", async ({ page }) => {
@@ -34,6 +49,9 @@ test.describe("Dashboards (E2E-03)", () => {
     await expect(page).toHaveURL(/\/staff\/tickets\?status=NEW/);
     await expect(page.getByRole("heading", { name: /my queue/i })).toBeVisible();
     await expect(page.locator("table.zg-table a").first()).toBeVisible();
+    const rows = await page.locator("table.zg-table tbody tr").allTextContents();
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) expect(row).toContain("New");
   });
 
   test("Administrator sees user counts that IT Staff do not", async ({ browser }) => {

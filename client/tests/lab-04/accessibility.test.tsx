@@ -70,9 +70,11 @@ describe("Accessibility (A11Y-01)", () => {
     renderStaffDashboard();
     const alert = await screen.findByRole("alert");
     expect(alert).toBeInTheDocument();
-    const retry = screen.getByRole("button", { name: "Retry" });
-    retry.focus();
-    expect(retry).toHaveFocus();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+    // The retry fails again; the button is disabled while it runs, then must get focus back.
+    await waitFor(() => expect(screen.getByRole("button", { name: "Retry" })).toBeEnabled());
+    expect(screen.getByRole("button", { name: "Retry" })).toHaveFocus();
   });
 
   it("metric links have accessible names that include the metric and are keyboard reachable", async () => {

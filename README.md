@@ -2,23 +2,14 @@
 
 TokTickIT is an IT service desk application being built through the CPE334 individual sprint workflow.
 
-## Current branch scope
+## Project status
 
-This branch contains the Issue 1 foundation, Issue 2 API health check, Issue 3 category seed, and Issue 4 category list:
+TokTickIT is an IT service desk application built across four CPE334 sprints. The main branch contains:
 
-- React + TypeScript + Vite frontend with Bootstrap styling
-- Node.js + Express + TypeScript backend
-- PostgreSQL Docker Compose service
-- Prisma schema and generated-client configuration
-- Vitest and Supertest test commands
-- Environment and repository safety templates
-- `GET /api/health` with a Supertest verification
-- React health status, loading state, and backend-unavailable error state
-- Prisma `Category` model, migration, and idempotent seed for four IT request categories
-- `GET /api/categories` backed by Prisma with predictable ID ordering
-- React category list loaded from the API with loading and error states
-
-No later application features are implemented on this branch.
+- **Lab 1:** React + TypeScript + Vite frontend, Node.js + Express + TypeScript backend, PostgreSQL with Prisma, `GET /api/health`, and the category list.
+- **Lab 2:** Requester ticketing: create tickets, My Tickets, Ticket Detail, attachments, and public comments.
+- **Lab 3:** Authentication with sessions, the IT Staff queue and workflow (owner, IT Priority, status), internal notes, staff attachments, and Administrator user management.
+- **Lab 4:** Actions Taken on tickets, the refined status workflow with a resolution gate and stale-update protection, and role dashboards. See the Lab 4 section below.
 
 ## Prerequisites
 
@@ -52,9 +43,9 @@ npm run dev:server
 npm run dev:client
 ```
 
-Open the Vite URL shown in the client terminal. The app now opens on the Development Requester
-selector screen; after picking a requester you land on My Tickets, from where you can create a
-ticket or open an existing one on the Ticket Detail screen.
+Open the Vite URL shown in the client terminal and sign in with a seeded account (see the Lab 3 section for the
+seeded users). Every role lands on its Dashboard; from there you can reach My Tickets or the staff queue, create a
+ticket, and open a ticket on its detail screen.
 
 ## Test and build
 

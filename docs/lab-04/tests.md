@@ -53,7 +53,7 @@ Final column starts as "Planned" and changes only after the suite has actually r
 | UI-04 | UI | FR-14, AC-02 | Requester dashboard cards, links, states | per state | client/tests/lab-04/RequesterDashboard.test.tsx | Pass (9 tests, 2026-10-31) |
 | STYLE-01 | UI style | ui-spec | Zen Green classes, badges, no ad hoc styling | present | client/tests/lab-04/zenGreenStyleLab4.test.tsx | Pass (6 tests, 2026-10-31) |
 | A11Y-01 | Accessibility | AC-28 | aria-current, labels, live region, focus, text status cues | present | client/tests/lab-04/accessibility.test.tsx | Pass (8 tests, 2026-10-31) |
-| VISUAL-01 | Responsive/visual | AC-27 | 3 viewports, no overflow, screenshots saved | saved, checklist true | e2e/lab-04/dashboards.spec.ts | Pass (9 screenshots, overflow asserted at 1280/820/390, 2026-10-31) |
+| VISUAL-01 | Responsive/visual | AC-27 | 3 viewports, no overflow, screenshots saved | saved, checklist true | e2e/lab-04/dashboards.spec.ts | Partial: 9 screenshots saved and all viewed, overflow asserted at 1280/820/390; validation placement and keyboard focus ring not yet evidenced in screenshots (section 4) |
 | E2E-01 | E2E | AC-01, AC-03, AC-25 | staff adds, edits Actions; Requester sees them | full flow | e2e/lab-04/actions-taken-flow.spec.ts | Pass (2026-10-31) |
 | E2E-02 | E2E | AC-11, AC-14, AC-15 | resolve gate, reopen, stale conflict between two sessions | full flow | e2e/lab-04/ticket-resolution.spec.ts | Pass (2 tests incl. two-session stale conflict, 2026-10-31) |
 | E2E-03 | E2E | AC-02, AC-19, AC-22 | dashboards per role, drill-down opens filtered lists | full flow | e2e/lab-04/dashboards.spec.ts | Pass (3 tests, 2026-10-31) |
@@ -69,9 +69,7 @@ AC-27 VISUAL-01 | AC-28 A11Y-01 | AC-29 UI-03, UI-04 | AC-30 REG-01. Every AC ha
 
 ## 4. Responsive and Visual Checklist
 Screenshots are in `artifacts/lab-04/screenshots/{staff-dashboard,requester-dashboard,actions-taken}/{desktop,tablet,mobile}.png`
-(1280, 820, 390 wide, full page, real rendered data). I opened staff-dashboard desktop and mobile, requester-dashboard
-mobile, and actions-taken tablet and mobile; the other four were checked only by the programmatic overflow assertion
-and the 44px probe below.
+(1280, 820, 390 wide, full page, real rendered data). All nine were opened and inspected by eye, and the overflow assertion and 44px probe below back them up.
 
 - [x] Theme tokens and badge system match Lab 2/3 on both dashboards and the Actions Taken area (viewed; ticket links
   and priority counts were blue and are now Zen Green)
@@ -81,7 +79,7 @@ and the 44px probe below.
   screenshot, so not ticked
 - [ ] Keyboard focus visible and logical: focus moves are tested (A11Y-01) but the focus ring was not captured or
   checked by eye, so not ticked
-- [x] No clipped text, overlapping controls or hidden buttons at 390/820/1280 (on the five screenshots viewed)
+- [x] No clipped text, overlapping controls or hidden buttons at 390/820/1280 (all nine screenshots viewed)
 - [x] No horizontal overflow at 390 (asserted by dashboards.spec.ts for all nine screenshots, also at 820 and 1280)
 - [x] Status never conveyed by color alone (badges carry text; follow-up shows "Follow-up needed")
 
