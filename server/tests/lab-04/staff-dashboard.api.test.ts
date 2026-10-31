@@ -8,7 +8,7 @@ import { app } from "../../src/app";
 import { prisma } from "../../src/prisma";
 import { buildStaffDashboard } from "../../src/services/dashboards";
 
-// API-20..23: staff dashboard (specification 6.3). Each metric is compared with an independent raw SQL query,
+// API-20..23: staff dashboard (specification 5.4). Each metric is compared with an independent raw SQL query,
 // and each drill-down list with its dashboard count (BR-22).
 const PASSWORD = "DevPass123!";
 const ACTIVE_SQL = `('NEW','OPEN','IN_PROGRESS','WAITING_FOR_REQUESTER','REOPENED')`;

@@ -3,7 +3,7 @@ import request from "supertest";
 import { app } from "../../src/app";
 import { prisma } from "../../src/prisma";
 
-// AUTHZ-01: role x endpoint codes per specification 6.2, for the Lab 4 endpoints that exist so far
+// AUTHZ-01: role x endpoint codes per specification 5.3, for the Lab 4 endpoints that exist so far
 // (Actions Taken list/create/update and the versioned owner/priority/status writes).
 const PASSWORD = "DevPass123!";
 async function login(email: string): Promise<string[]> {
@@ -117,7 +117,7 @@ describe("AUTHZ-01: PATCH ticket owner / priority / status", () => {
   });
 });
 
-describe("AUTHZ-01: dashboards (specification 6.2)", () => {
+describe("AUTHZ-01: dashboards (specification 5.3)", () => {
   const requesterDash = "/api/v1/dashboard/requester";
   const staffDash = "/api/v1/dashboard/staff";
   it("Requester dashboard: 401 anonymous, 200 Requester, 403 IT Staff and Administrator", async () => {

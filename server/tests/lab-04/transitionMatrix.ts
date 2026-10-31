@@ -1,6 +1,6 @@
 import type { TicketStatus } from "../../src/services/ticketStatusTransitions";
 
-// specification.md 6.1 rows that a client may request. NEW->OPEN and REOPENED->OPEN are automatic
+// specification.md 5.2 rows that a client may request. NEW->OPEN and REOPENED->OPEN are automatic
 // (system) rows and are never valid as a direct PATCH target.
 export const PATCH_VALID: [TicketStatus, TicketStatus][] = [
   ["NEW", "CANCELLED"],

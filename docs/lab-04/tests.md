@@ -14,7 +14,7 @@ Final column starts as "Planned" and changes only after the suite has actually r
 | SEED-01 | Migration | AC-24, BR-24 | seed run twice | identical counts, no duplicates, covers all statuses/priorities/0-1-many Actions | server/tests/lab-04/seed.test.ts | Pass (4 tests, seed run twice, 2026-10-31) |
 | UNIT-01 | Unit | BR-05, BR-06 | action input validator | length limits, follow-up note rule both ways | server/tests/lab-04/actionValidation.test.ts | Pass (8 tests, 2026-10-31) |
 | UNIT-02 | Unit | BR-04 | action date window | rejects future (>5 min) and before ticket creation | server/tests/lab-04/actionValidation.test.ts | Pass (3 tests, 2026-10-31) |
-| UNIT-03 | Unit | 6.1, AC-13, AC-14 | transition matrix over all 64 pairs | exactly the listed pairs valid | server/tests/lab-04/ticketTransitions.test.ts | Pass (64 pairs, 2026-10-31) |
+| UNIT-03 | Unit | 5.2, AC-13, AC-14 | transition matrix over all 64 pairs | exactly the listed pairs valid | server/tests/lab-04/ticketTransitions.test.ts | Pass (64 pairs, 2026-10-31) |
 | API-01 | API | AC-01, BR-03 | create Action as IT Staff | saved under Ticket, performer = session, body performer ignored | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
 | API-02 | API | AC-03, BR-02 | non-owner staff creates Action | 201, Ticket owner unchanged | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
 | API-03 | API | AC-04, AC-05 | follow-up rule | 422 both directions | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
@@ -38,7 +38,7 @@ Final column starts as "Planned" and changes only after the suite has actually r
 | API-21 | API | AC-22 | Administrator userCounts present, staff absent | as stated | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-31) |
 | API-22 | API | AC-20 | empty database staff dashboard | zeros, 200 | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-31) |
 | API-23 | API | FR-18 | queue `activeOnly` and `ownerId` | correct subset | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-31) |
-| AUTHZ-01 | Authorization | 6.2 matrix | every role x every Lab 4 endpoint | codes exactly as matrix | server/tests/lab-04/authorization.api.test.ts | Pass (actions, ticket write and dashboard endpoints, 2026-10-31) |
+| AUTHZ-01 | Authorization | 5.3 matrix | every role x every Lab 4 endpoint | codes exactly as matrix | server/tests/lab-04/authorization.api.test.ts | Pass (actions, ticket write and dashboard endpoints, 2026-10-31) |
 | PERF-01 | Performance smoke | BR-22 | dashboards on seeded plus 2,000 Tickets | each responds under 500 ms locally | server/tests/lab-04/performance.smoke.test.ts | Pass (2026-10-31) |
 | REG-01 | Regression | AC-30, FR-25 | Lab 1, 2, 3 server suites | all pass (documented BR-17 updates only) | server/tests/lab-01..03/ | Pass (server 3 + 56 + 117 tests, client Lab 1-3 suites, 2026-10-31) |
 | UI-01 | UI | AC-25, AC-26 | Actions Taken list, create, edit, validation, data kept | per state | client/tests/lab-04/ActionsTaken.test.tsx | Pass (12 tests, 2026-10-31) |
@@ -109,7 +109,7 @@ Intentional test changes in this task:
 Bugs the E2E pass found and fixed: an Action added within the minute its Ticket was created was rejected because the
 form's minute-precision default sorted before the creation seconds (validator now compares at minute precision,
 UNIT-02 extended); staff Create Ticket returned 403 and then opened a Requester-only detail route (decision recorded
-in specification.md section 12).
+in specification.md section 11).
 
 The Lab 3 first-login E2E spec changes the password of `onboarding@toktickit.local`; `npx prisma db seed` restores it
 and was re-run after the final E2E run. One early run of the Lab 4 resolution spec failed once and passed on every

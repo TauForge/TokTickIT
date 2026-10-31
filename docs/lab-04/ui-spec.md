@@ -18,7 +18,7 @@ Metric cards (label, large value, "View" action as a real link): New, Open, In P
 My Assigned, Unassigned. A compact "By IT Priority" card with Low/Medium/High counts, each a link. Lists:
 "Urgent" (HIGH, oldest first), "Recently Updated", "My Recent Actions". Quick Actions: Create Ticket, Search
 Tickets, My Queue. Administrator also sees a "Users" card (active, inactive, per role) linking to Admin.
-Every card and row links as defined in specification.md 6.3.
+Every card and row links as defined in specification.md 5.4.
 Layout: cards in a responsive grid (5 across on desktop, 3 on tablet, 2 on mobile, then 1 below 360px); lists below;
 no horizontal scroll at any width.
 States: loading (skeleton cards, `aria-busy`), empty lists ("No tickets need attention."), zero counts show 0,
@@ -50,7 +50,7 @@ Attachments, shown with a count badge.
 Requester Ticket Detail gets the same list read-only (no Add, no Edit), titled "Actions Taken".
 
 ## 4. Ticket workflow feedback
-The Current Status select offers only the permitted next statuses from specification 6.1. Choosing Resolved on a
+The Current Status select offers only the permitted next statuses from specification 5.2. Choosing Resolved on a
 Ticket with no Actions shows the inline callout "Record at least one action before resolving." and the select reverts.
 Success refreshes the Ticket summary status badge and version without a full reload. 409 conflicts (stale, locked,
 invalid transition) show an inline callout and revert the control to the last known value.

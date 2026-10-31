@@ -33,7 +33,7 @@ Same field rules, applied to the merged result. `performedBy` and `createdAt` ca
 |---|---|
 | PATCH /staff/tickets/:id/owner | body adds `expectedVersion`; 409 STALE_UPDATE, 422 VERSION_REQUIRED |
 | PATCH /staff/tickets/:id/priority | body adds `expectedVersion`; same errors |
-| PATCH /staff/tickets/:id/status | body adds `expectedVersion`; transitions per specification 6.1; 409 RESOLUTION_REQUIRES_ACTION when moving to RESOLVED with zero Actions; same stale errors |
+| PATCH /staff/tickets/:id/status | body adds `expectedVersion`; transitions per specification 5.2; 409 RESOLUTION_REQUIRES_ACTION when moving to RESOLVED with zero Actions; same stale errors |
 | GET /staff/tickets, GET /staff/tickets/:id | response gains `version` |
 | GET /staff/tickets | adds query `activeOnly=true` (status in NEW, OPEN, IN_PROGRESS, WAITING_FOR_REQUESTER, REOPENED); `ownerId` accepts a user id or `unassigned` |
 | GET /tickets/:id (Requester) | response gains `version` (read-only, not writable by Requesters) |
@@ -70,7 +70,7 @@ TicketRowDto = { id, ticketNumber, summary, status, updatedAt }
   generatedAt }
 StaffRowDto = { id, ticketNumber, summary, status, itPriority, ownerDisplayName | null, updatedAt }
 ```
-Calculations, zero states and drill-down links: specification.md section 6.3. All calculations run on the server
+Calculations, zero states and drill-down links: specification.md section 5.4. All calculations run on the server
 per request (BR-19). Empty data returns zeros and empty arrays, never an error.
 
 ## 4. Status codes used

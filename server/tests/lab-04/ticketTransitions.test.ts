@@ -4,7 +4,7 @@ import { PATCH_VALID } from "./transitionMatrix";
 
 const ALL: TicketStatus[] = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"];
 
-describe("UNIT-03: status transition matrix over all 64 pairs (6.1, AC-13, AC-14)", () => {
+describe("UNIT-03: status transition matrix over all 64 pairs (5.2, AC-13, AC-14)", () => {
   const pairs = ALL.flatMap((from) => ALL.map((to) => [from, to] as [TicketStatus, TicketStatus]));
   const validKeys = new Set(PATCH_VALID.map(([f, t]) => `${f}>${t}`));
 
