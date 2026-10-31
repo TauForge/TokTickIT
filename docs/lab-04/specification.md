@@ -47,7 +47,7 @@ original request and return the original Action instead of creating a second one
 FR-14 System shall provide a Requester dashboard endpoint returning only the authenticated Requester's counts
 and Ticket lists.
 FR-15 System shall provide an IT Staff dashboard endpoint, available to IT Staff and Administrators, returning
-the metrics defined in section 6.
+the metrics defined in section 5.4.
 FR-16 System shall add active user counts to the dashboard response for Administrators only.
 FR-17 System shall calculate every dashboard value on the server from stored data per request.
 FR-18 System shall let the IT Staff Ticket Queue filter to active tickets owned by a user (`activeOnly`) so every
