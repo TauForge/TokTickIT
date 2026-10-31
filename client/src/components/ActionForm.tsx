@@ -155,18 +155,18 @@ export function ActionForm({ action, onSubmit, onCancel, onReload }: Props) {
       )}
 
       <label htmlFor="action-at">Action Date/Time</label>
-      <input id="action-at" type="datetime-local" value={values.actionAt} aria-describedby={describedBy("actionAt", "action-at")} onChange={(e) => set("actionAt", e.target.value)} />
+      <input id="action-at" type="datetime-local" value={values.actionAt} aria-describedby={describedBy("actionAt", "action-at")} aria-invalid={errors.actionAt ? true : undefined} onChange={(e) => set("actionAt", e.target.value)} />
       {errors.actionAt && <p id="action-at-error" className="zg-field-error">{errors.actionAt}</p>}
 
       <p className="form-label mt-3 mb-1">Performed by</p>
       <p className="zg-readonly">{action ? action.performedBy.displayName : "You"}</p>
 
       <label htmlFor="action-description">Description</label>
-      <textarea id="action-description" value={values.description} aria-required="true" aria-describedby={describedBy("description", "action-description")} onChange={(e) => set("description", e.target.value)} />
+      <textarea id="action-description" value={values.description} aria-required="true" aria-describedby={describedBy("description", "action-description")} aria-invalid={errors.description ? true : undefined} onChange={(e) => set("description", e.target.value)} />
       {errors.description && <p id="action-description-error" className="zg-field-error">{errors.description}</p>}
 
       <label htmlFor="action-result">Result</label>
-      <textarea id="action-result" value={values.result} aria-required="true" aria-describedby={describedBy("result", "action-result")} onChange={(e) => set("result", e.target.value)} />
+      <textarea id="action-result" value={values.result} aria-required="true" aria-describedby={describedBy("result", "action-result")} aria-invalid={errors.result ? true : undefined} onChange={(e) => set("result", e.target.value)} />
       {errors.result && <p id="action-result-error" className="zg-field-error">{errors.result}</p>}
 
       <div className="form-check mt-3">
@@ -179,13 +179,13 @@ export function ActionForm({ action, onSubmit, onCancel, onReload }: Props) {
       {values.followUpRequired && (
         <>
           <label htmlFor="action-follow-up-note">Follow-up note</label>
-          <textarea id="action-follow-up-note" value={values.followUpNote} aria-required="true" aria-describedby={describedBy("followUpNote", "action-follow-up-note")} onChange={(e) => set("followUpNote", e.target.value)} />
+          <textarea id="action-follow-up-note" value={values.followUpNote} aria-required="true" aria-describedby={describedBy("followUpNote", "action-follow-up-note")} aria-invalid={errors.followUpNote ? true : undefined} onChange={(e) => set("followUpNote", e.target.value)} />
           {errors.followUpNote && <p id="action-follow-up-note-error" className="zg-field-error">{errors.followUpNote}</p>}
         </>
       )}
 
       <label htmlFor="action-attachment-notes">Attachment notes</label>
-      <textarea id="action-attachment-notes" value={values.attachmentNotes} aria-describedby={describedBy("attachmentNotes", "action-attachment-notes")} onChange={(e) => set("attachmentNotes", e.target.value)} />
+      <textarea id="action-attachment-notes" value={values.attachmentNotes} aria-describedby={describedBy("attachmentNotes", "action-attachment-notes")} aria-invalid={errors.attachmentNotes ? true : undefined} onChange={(e) => set("attachmentNotes", e.target.value)} />
       {errors.attachmentNotes && <p id="action-attachment-notes-error" className="zg-field-error">{errors.attachmentNotes}</p>}
 
       <div className="mt-3 d-flex gap-2">
