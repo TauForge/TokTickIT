@@ -155,3 +155,71 @@ The Lab 3 fixtures (`server/prisma/seed.ts`):
 | former.tech@toktickit.dev | IT_STAFF (inactive) |
 | onboarding@toktickit.local | IT_STAFF (mandatory first-login password change) |
 | admin@toktickit.dev | ADMINISTRATOR |
+
+## Lab 4: Actions Taken, Ticket Workflow Rules, and Dashboards
+
+Lab 4 adds Actions Taken (work records on a Ticket), a stricter Ticket workflow, and role-based
+dashboards. See `docs/lab-04/specification.md` for requirements, `docs/lab-04/api-spec.md` for the
+endpoints, `docs/lab-04/ui-spec.md` for the screens and `docs/lab-04/tests.md` for the test plan and
+results.
+
+### New features
+
+- **Actions Taken.** IT Staff and Administrators add and edit Actions on a Ticket (description, result,
+  optional follow-up and attachment notes). The performer is always the signed-in user. Actions are never
+  deleted. Requesters see the Actions on their own Tickets read-only.
+- **Workflow rules.** A refined status transition matrix, a resolution gate (a Ticket needs at least one
+  Action before it can move to Resolved), and optimistic concurrency: owner, priority, status and Action
+  writes send `expectedVersion`, and a stale write gets `409 STALE_UPDATE` with a Reload prompt.
+  Action creation accepts an `Idempotency-Key` header so a retried click does not duplicate.
+- **Dashboards.** The Dashboard is the landing page for every role. Requesters see counts for their own
+  Tickets; IT Staff see queue metrics with drill-down links into the filtered queue; Administrators also see
+  user counts. All counts are computed in SQL by the backend.
+- **Create Ticket for staff.** IT Staff and Administrators may create a Ticket for themselves (the Lab 4
+  handout lists Create Ticket as a staff quick action). `requesterId` is always the session user.
+
+### New endpoints (base path `/api/v1`)
+
+| Method and path | Who |
+| --- | --- |
+| GET, POST `/staff/tickets/:id/actions` | IT Staff, Administrator |
+| PATCH `/staff/tickets/:id/actions/:actionId` | the performer, or an Administrator |
+| GET `/tickets/:id/actions` | the Requester who owns the Ticket (read-only) |
+| GET `/dashboard/requester` | Requester |
+| GET `/dashboard/staff` | IT Staff, Administrator |
+
+Existing owner, priority and status PATCH routes now require `expectedVersion`. `GET /staff/tickets` also
+accepts `activeOnly=true` and `ownerId=<id>|unassigned`.
+
+### Migration, rollback and seed
+
+```bash
+cd server
+npx prisma migrate deploy      # applies lab4_actions_taken and lab4_dashboard_indexes (additive only)
+npx prisma db seed             # idempotent; adds 12 Lab 4 tickets SEED4-001..012 and sample Actions
+```
+
+Rollback is a manual SQL script per migration, newest first, run against the database you want to revert:
+
+```bash
+psql "$DATABASE_URL" -f prisma/migrations/20261031110000_lab4_dashboard_indexes/rollback.sql
+psql "$DATABASE_URL" -f prisma/migrations/20261031100000_lab4_actions_taken/rollback.sql
+```
+
+Afterwards delete the matching rows from `_prisma_migrations`. The migration and rollback are tested on a
+scratch database (`server/tests/lab-04/migration.test.ts`), never on dev or test data.
+
+### Running the Lab 4 tests
+
+```bash
+cd server && npm test                       # all server suites (Labs 1-4)
+cd client && npm test                       # all client suites
+cd client && npx tsc -b && npx vite build   # type check and production build
+cd e2e && npx playwright test lab-04        # Lab 4 E2E (starts the dev servers)
+```
+
+The E2E run uses the dev database and writes screenshots to `artifacts/lab-04/screenshots/`
+(`staff-dashboard`, `requester-dashboard`, `actions-taken`, each at `desktop` 1280, `tablet` 820 and
+`mobile` 390). Re-run `npx prisma db seed` afterwards: the Lab 3 first-login spec changes the password of
+`onboarding@toktickit.local`, and the seed restores it. Lab 4 uses the same seeded accounts and shared
+development password as Lab 3.
