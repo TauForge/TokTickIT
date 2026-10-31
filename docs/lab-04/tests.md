@@ -9,21 +9,21 @@ Final column starts as "Planned" and changes only after the suite has actually r
 ## 2. Planned Tests
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final |
 |---|---|---|---|---|---|---|
-| MIG-01 | Migration | AC-23, BR-23 | migration on a Lab 3 database | no row lost, legacy Tickets have 0 Actions, `version` 0 | server/tests/lab-04/migration.test.ts | Planned |
-| MIG-02 | Migration | AC-23 | rollback script on scratch DB | schema returns to Lab 3 shape, old data intact | server/tests/lab-04/migration.test.ts | Planned |
-| SEED-01 | Migration | AC-24, BR-24 | seed run twice | identical counts, no duplicates, covers all statuses/priorities/0-1-many Actions | server/tests/lab-04/seed.test.ts | Planned |
-| UNIT-01 | Unit | BR-05, BR-06 | action input validator | length limits, follow-up note rule both ways | server/tests/lab-04/actionValidation.test.ts | Planned |
-| UNIT-02 | Unit | BR-04 | action date window | rejects future (>5 min) and before ticket creation | server/tests/lab-04/actionValidation.test.ts | Planned |
+| MIG-01 | Migration | AC-23, BR-23 | migration on a Lab 3 database | no row lost, legacy Tickets have 0 Actions, `version` 0 | server/tests/lab-04/migration.test.ts | Pass (3 tests, scratch DB, 2026-10-31) |
+| MIG-02 | Migration | AC-23 | rollback script on scratch DB | schema returns to Lab 3 shape, old data intact | server/tests/lab-04/migration.test.ts | Pass (1 test, scratch DB, 2026-10-31) |
+| SEED-01 | Migration | AC-24, BR-24 | seed run twice | identical counts, no duplicates, covers all statuses/priorities/0-1-many Actions | server/tests/lab-04/seed.test.ts | Pass (4 tests, seed run twice, 2026-10-31) |
+| UNIT-01 | Unit | BR-05, BR-06 | action input validator | length limits, follow-up note rule both ways | server/tests/lab-04/actionValidation.test.ts | Pass (8 tests, 2026-10-31) |
+| UNIT-02 | Unit | BR-04 | action date window | rejects future (>5 min) and before ticket creation | server/tests/lab-04/actionValidation.test.ts | Pass (3 tests, 2026-10-31) |
 | UNIT-03 | Unit | 6.1, AC-13, AC-14 | transition matrix over all 64 pairs | exactly the listed pairs valid | server/tests/lab-04/ticketTransitions.test.ts | Planned |
-| API-01 | API | AC-01, BR-03 | create Action as IT Staff | saved under Ticket, performer = session, body performer ignored | server/tests/lab-04/actions-taken.api.test.ts | Planned |
-| API-02 | API | AC-03, BR-02 | non-owner staff creates Action | 201, Ticket owner unchanged | server/tests/lab-04/actions-taken.api.test.ts | Planned |
-| API-03 | API | AC-04, AC-05 | follow-up rule | 422 both directions | server/tests/lab-04/actions-taken.api.test.ts | Planned |
-| API-04 | API | AC-06, BR-10 | Requester create/update Action | 403, nothing written | server/tests/lab-04/actions-taken.api.test.ts | Planned |
-| API-05 | API | AC-07, AC-08 | Requester lists Actions (own / other) | 200 stable order / 404 | server/tests/lab-04/actions-taken.api.test.ts | Planned |
-| API-06 | API | AC-09, BR-08 | update by non-performer / performer / admin | 403 / 200 / 200 | server/tests/lab-04/actions-taken.api.test.ts | Planned |
-| API-07 | API | AC-10, BR-07 | DELETE Action | 404, row still present | server/tests/lab-04/actions-taken.api.test.ts | Planned |
-| API-08 | API | AC-18, BR-09 | Action on CANCELLED Ticket | 409 TICKET_LOCKED | server/tests/lab-04/actions-taken.api.test.ts | Planned |
-| API-09 | API | AC-17, BR-18 | same Idempotency-Key twice | one row, second 200 original | server/tests/lab-04/actions-taken.api.test.ts | Planned |
+| API-01 | API | AC-01, BR-03 | create Action as IT Staff | saved under Ticket, performer = session, body performer ignored | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
+| API-02 | API | AC-03, BR-02 | non-owner staff creates Action | 201, Ticket owner unchanged | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
+| API-03 | API | AC-04, AC-05 | follow-up rule | 422 both directions | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
+| API-04 | API | AC-06, BR-10 | Requester create/update Action | 403, nothing written | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
+| API-05 | API | AC-07, AC-08 | Requester lists Actions (own / other) | 200 stable order / 404 | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
+| API-06 | API | AC-09, BR-08 | update by non-performer / performer / admin | 403 / 200 / 200 | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
+| API-07 | API | AC-10, BR-07 | DELETE Action | 404, row still present | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
+| API-08 | API | AC-18, BR-09 | Action on CANCELLED Ticket | 409 TICKET_LOCKED | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
+| API-09 | API | AC-17, BR-18 | same Idempotency-Key twice | one row, second 200 original | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-31) |
 | API-10 | API | AC-11, BR-13 | resolve with 0 then 1 Action | 409 then 200 | server/tests/lab-04/ticket-workflow.api.test.ts | Planned |
 | API-11 | API | AC-12, BR-14 | advisory flag does not resolve or pass gate | status unchanged, gate still 409 | server/tests/lab-04/ticket-workflow.api.test.ts | Planned |
 | API-12 | API | AC-13 | every status pair through PATCH | valid 200, others 409 correct code | server/tests/lab-04/ticket-workflow.api.test.ts | Planned |
