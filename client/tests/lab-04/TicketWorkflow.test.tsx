@@ -119,4 +119,36 @@ describe("Ticket workflow feedback (UI-02)", () => {
     expect(await screen.findByText("That status change is not allowed")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByLabelText(/current status/i)).toHaveValue("IN_PROGRESS"));
   });
+
+  it("disables owner, priority and status while a write is in flight, so two changes cannot share one expectedVersion", async () => {
+    let release: (() => void) | undefined;
+    let patches = 0;
+    routeFetch(amy, base({ ...staffTicket, status: "OPEN" }));
+    const original = globalThis.fetch as unknown as (url: string, init?: RequestInit) => Promise<unknown>;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((url: string, init?: RequestInit) => {
+        if (init?.method === "PATCH") {
+          patches += 1;
+          return new Promise((resolve) => {
+            release = () => resolve({ ok: true, status: 200, json: async () => ({ ...staffTicket, status: "OPEN", itPriority: "HIGH", version: 1 }) });
+          });
+        }
+        return original(url, init);
+      }),
+    );
+    const user = userEvent.setup();
+
+    renderStaffDetail();
+    await screen.findByText("TKT-2026-000001");
+    await user.selectOptions(screen.getByLabelText(/it priority/i), "HIGH");
+
+    await waitFor(() => expect(screen.getByLabelText(/current status/i)).toBeDisabled());
+    expect(screen.getByLabelText(/it priority/i)).toBeDisabled();
+    expect(screen.getByLabelText(/ticket owner/i)).toBeDisabled();
+    expect(patches).toBe(1);
+
+    release?.();
+    await waitFor(() => expect(screen.getByLabelText(/current status/i)).toBeEnabled());
+  });
 });

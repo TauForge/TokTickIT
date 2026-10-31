@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { admin, amy, ben, jennifer, makeAction, on, renderRequesterDetail, renderStaffDetail, routeFetch, staffTicket, type Handler } from "./helpers";
@@ -110,12 +110,14 @@ describe("Actions Taken on Staff Ticket Detail (UI-01)", () => {
 
   it("locks the submit button while a save is in flight", async () => {
     let release: (() => void) | undefined;
-    const calls = routeFetch(amy, ticketRoutes([]));
+    let postCount = 0;
+    routeFetch(amy, ticketRoutes([]));
     const original = globalThis.fetch as unknown as (url: string, init?: RequestInit) => Promise<unknown>;
     vi.stubGlobal(
       "fetch",
       vi.fn().mockImplementation((url: string, init?: RequestInit) => {
         if (init?.method === "POST") {
+          postCount += 1;
           return new Promise((resolve) => {
             release = () => resolve({ ok: true, status: 201, json: async () => makeAction() });
           });
@@ -133,8 +135,11 @@ describe("Actions Taken on Staff Ticket Detail (UI-01)", () => {
     await user.click(screen.getByRole("button", { name: /save action/i }));
 
     await waitFor(() => expect(screen.getByRole("button", { name: /saving/i })).toBeDisabled());
+    // A second submit while the first is pending (Enter key, fast double click) must not send another POST.
+    fireEvent.submit(screen.getByRole("form", { name: /add action/i }));
+    fireEvent.submit(screen.getByRole("form", { name: /add action/i }));
     release?.();
-    expect(calls).toBeDefined();
+    expect(postCount).toBe(1);
   });
 
   async function openFirstAction(me: MockUser, performerId: number) {
@@ -186,14 +191,14 @@ describe("Actions Taken on Staff Ticket Detail (UI-01)", () => {
     expect(patch.body).toMatchObject({ expectedVersion: 0, result: "Fixed" });
   });
 
-  it("a stale 409 shows the callout, keeps the typed text, and Reload refetches", async () => {
+  it("a stale 409 shows the callout, and Reload resets the form to the latest values while keeping the typed text visible", async () => {
     let listCalls = 0;
     routeFetch(amy, [
       on("PATCH", /\/actions\/a1$/, () => ({ status: 409, body: { error: { code: "STALE_UPDATE", message: "changed", currentVersion: 3 } } })),
       (call) => {
         if (call.method === "GET" && /\/actions$/.test(call.url)) {
           listCalls += 1;
-          return { body: [makeAction({ version: listCalls > 1 ? 3 : 0 })] };
+          return { body: [listCalls > 1 ? makeAction({ version: 3, result: "Colleague's newer result" }) : makeAction()] };
         }
         return undefined;
       },
@@ -214,7 +219,32 @@ describe("Actions Taken on Staff Ticket Detail (UI-01)", () => {
     expect(screen.getByLabelText(/^result/i)).toHaveValue("My typed text");
     await user.click(screen.getByRole("button", { name: /reload/i }));
     await waitFor(() => expect(listCalls).toBeGreaterThan(1));
-    expect(screen.getByLabelText(/^result/i)).toHaveValue("My typed text");
+    // Review on PR #52: Save must not be able to replace the other person's edit unseen.
+    await waitFor(() => expect(screen.getByLabelText(/^result/i)).toHaveValue("Colleague's newer result"));
+    expect(screen.getByText(/My typed text/, { selector: "li" })).toBeInTheDocument();
+    expect(screen.getByText(/showing the latest saved values/i)).toBeInTheDocument();
+  });
+
+  it("editing the description does not send actionAt, so stored seconds are not rewritten", async () => {
+    const calls = routeFetch(amy, [
+      on("PATCH", /\/actions\/a1$/, () => ({ body: makeAction({ description: "Reworded", version: 1 }) })),
+      ...ticketRoutes([makeAction({ actionAt: "2026-01-02T03:00:42.000Z" })]),
+    ]);
+    const user = userEvent.setup();
+
+    renderStaffDetail();
+    await openActionsTab(user);
+    await user.click(await screen.findByRole("button", { name: /view action/i }));
+    await user.click(screen.getByRole("button", { name: /^edit/i }));
+    const description = screen.getByLabelText(/^description/i);
+    await user.clear(description);
+    await user.type(description, "Reworded");
+    await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+    await waitFor(() => expect(calls.some((c) => c.method === "PATCH")).toBe(true));
+    const patch = calls.find((c) => c.method === "PATCH")!;
+    expect(patch.body).toMatchObject({ description: "Reworded", expectedVersion: 0 });
+    expect(patch.body).not.toHaveProperty("actionAt");
   });
 
   it("never renders a delete control", async () => {

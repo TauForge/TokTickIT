@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createAction, listStaffActions, newIdempotencyKey, updateAction, type ActionDto, type ActionInput } from "../api/actionsApi";
-import { ActionForm } from "./ActionForm";
+import { ActionForm, type ActionDraft } from "./ActionForm";
 import { ActionsList, FollowUpBadge } from "./ActionsList";
 import { formatBangkok } from "../utils/bangkokTime";
 
@@ -19,6 +19,8 @@ export function ActionsTakenPanel({ ticketId, currentUser, onCountChange }: Prop
   const [loadError, setLoadError] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>({ kind: "list" });
   const [announcement, setAnnouncement] = useState("");
+  const [formKey, setFormKey] = useState(0);
+  const [discarded, setDiscarded] = useState<ActionDraft | null>(null);
   const idempotencyKey = useRef<string | null>(null);
 
   const load = useCallback(async () => {
@@ -39,7 +41,8 @@ export function ActionsTakenPanel({ ticketId, currentUser, onCountChange }: Prop
   }, [load]);
 
   function openCreate() {
-    idempotencyKey.current = newIdempotencyKey();
+    // Kept until a save succeeds, so Cancel followed by Add Action after a failed or unknown send still dedupes.
+    idempotencyKey.current ??= newIdempotencyKey();
     setAnnouncement("");
     setMode({ kind: "create" });
   }
@@ -56,9 +59,19 @@ export function ActionsTakenPanel({ ticketId, currentUser, onCountChange }: Prop
 
   async function handleUpdate(action: ActionDto, input: ActionInput) {
     const updated = await updateAction(ticketId, action.id, input, action.version);
+    setDiscarded(null);
     setMode({ kind: "view", id: updated.id });
     setAnnouncement("Action updated.");
     await load();
+  }
+
+  // After a stale update the form restarts from the latest saved values, so Save can never silently replace
+  // someone else's edit; what the user had typed stays visible so nothing is lost.
+  async function handleReload(draft: ActionDraft) {
+    setDiscarded(draft);
+    await load();
+    setFormKey((k) => k + 1);
+    setAnnouncement("Reloaded the latest saved values.");
   }
 
   const selected = mode.kind === "view" || mode.kind === "edit" ? actions.find((a) => a.id === mode.id) : undefined;
@@ -82,7 +95,20 @@ export function ActionsTakenPanel({ ticketId, currentUser, onCountChange }: Prop
       )}
       {mode.kind === "create" && <ActionForm onSubmit={handleCreate} onCancel={() => setMode({ kind: "list" })} />}
       {mode.kind === "edit" && selected && (
-        <ActionForm key={selected.id} action={selected} onSubmit={(input) => handleUpdate(selected, input)} onCancel={() => setMode({ kind: "view", id: selected.id })} onReload={load} />
+        <>
+          {discarded && (
+            <div role="status" className="zg-card mb-2">
+              <p className="mb-1">Showing the latest saved values. Your unsaved text is kept here so you can copy it back in.</p>
+              <ul className="mb-0">
+                <li>Description: {discarded.description || "(empty)"}</li>
+                <li>Result: {discarded.result || "(empty)"}</li>
+                {discarded.followUpNote && <li>Follow-up note: {discarded.followUpNote}</li>}
+                {discarded.attachmentNotes && <li>Attachment notes: {discarded.attachmentNotes}</li>}
+              </ul>
+            </div>
+          )}
+          <ActionForm key={`${selected.id}-${formKey}`} action={selected} onSubmit={(input) => handleUpdate(selected, input)} onCancel={() => { setDiscarded(null); setMode({ kind: "view", id: selected.id }); }} onReload={handleReload} />
+        </>
       )}
       {mode.kind === "view" && selected && (
         <section className="zg-card" aria-label="Action details">
@@ -109,7 +135,10 @@ export function ActionsTakenPanel({ ticketId, currentUser, onCountChange }: Prop
               disabled={!canEdit(selected)}
               title={canEdit(selected) ? undefined : EDIT_DENIED}
               aria-describedby={canEdit(selected) ? undefined : "action-edit-denied"}
-              onClick={() => setMode({ kind: "edit", id: selected.id })}
+              onClick={() => {
+                setDiscarded(null);
+                setMode({ kind: "edit", id: selected.id });
+              }}
             >
               Edit
             </button>
