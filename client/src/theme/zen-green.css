@@ -89,6 +89,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   border-radius: 6px;
   padding: 0 10px;
 }
+.zg-card input[type="checkbox"], .zg-card input[type="radio"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  flex: none;
+  accent-color: var(--zg-primary);
+}
+.zg-card input[type="checkbox"] + label, .zg-card input[type="radio"] + label { display: inline; margin-top: 0; }
 input[type="file"] { min-height: 44px; padding: 8px 10px; }
 .zg-card textarea { height: 96px; padding: 10px; resize: vertical; }
 .zg-card input:focus, .zg-card select:focus, .zg-card textarea:focus {
