@@ -1,13 +1,15 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./theme/zen-green.css";
 
-import { BrowserRouter, Link, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import { BrowserRouter, Navigate, NavLink, Route, Routes, useNavigate, useParams } from "react-router-dom";
 import { AuthProvider, useAuth } from "./api/authContext";
 import { RoleBadge } from "./components/badges";
 import { Login } from "./screens/Login";
 import { ChangePassword } from "./screens/ChangePassword";
 import { CreateTicket } from "./screens/CreateTicket";
 import { MyTickets } from "./screens/MyTickets";
+import { RequesterDashboard } from "./screens/RequesterDashboard";
+import { StaffDashboard } from "./screens/StaffDashboard";
 import { StaffTicketQueue } from "./screens/StaffTicketQueue";
 import { StaffTicketDetail } from "./screens/StaffTicketDetail";
 import { TicketDetail } from "./screens/TicketDetail";
@@ -28,11 +30,8 @@ function CreateTicketRoute() {
   return <CreateTicket onCreated={(ticket) => navigate(`/tickets/${ticket.id}`)} />;
 }
 
-function homeFor(role: string): string {
-  if (role === "IT_STAFF") return "/staff/tickets";
-  if (role === "ADMINISTRATOR") return "/admin/users";
-  return "/tickets";
-}
+// Every role lands on the Dashboard after login (ui-spec.md navigation).
+const HOME = "/dashboard";
 
 function Shell() {
   const { user, loading, logout } = useAuth();
@@ -52,20 +51,20 @@ function Shell() {
     <div>
       <header className="zg-app-header">
         <span className="navbar-brand">TokTickIT</span>
-        <nav>
+        <nav aria-label="Main">
+          <NavLink to="/dashboard" end>
+            Dashboard
+          </NavLink>
           {user.role === "REQUESTER" && (
-            <>
-              <Link to="/tickets">My Tickets</Link>
-              <Link to="/tickets/new">Create Ticket</Link>
-            </>
+            <NavLink to="/tickets" end>
+              My Tickets
+            </NavLink>
           )}
-          {user.role === "IT_STAFF" && (
-            <>
-              <Link to="/staff/tickets">My Queue</Link>
-              <Link to="/tickets/new">Create Ticket</Link>
-            </>
-          )}
-          {user.role === "ADMINISTRATOR" && <Link to="/admin/users">Admin</Link>}
+          {user.role !== "REQUESTER" && <NavLink to="/staff/tickets">My Queue</NavLink>}
+          <NavLink to="/tickets/new" end>
+            Create Ticket
+          </NavLink>
+          {user.role === "ADMINISTRATOR" && <NavLink to="/admin/users">Admin</NavLink>}
         </nav>
         <div className="d-flex align-items-center">
           <span className="me-3">
@@ -77,6 +76,7 @@ function Shell() {
         </div>
       </header>
       <Routes>
+        <Route path="/dashboard" element={user.role === "REQUESTER" ? <RequesterDashboard /> : <StaffDashboard />} />
         {user.role === "REQUESTER" && (
           <>
             <Route path="/tickets" element={<MyTickets />} />
@@ -84,7 +84,7 @@ function Shell() {
             <Route path="/tickets/:id" element={<TicketDetailRoute />} />
           </>
         )}
-        {user.role === "IT_STAFF" && (
+        {user.role !== "REQUESTER" && (
           <>
             <Route path="/staff/tickets" element={<StaffTicketQueue />} />
             <Route path="/staff/tickets/:id" element={<StaffTicketDetailRoute />} />
@@ -93,7 +93,7 @@ function Shell() {
           </>
         )}
         {user.role === "ADMINISTRATOR" && <Route path="/admin/users" element={<UserManagement />} />}
-        <Route path="/" element={<Navigate to={homeFor(user.role)} replace />} />
+        <Route path="/" element={<Navigate to={HOME} replace />} />
         <Route path="*" element={<p role="alert">You don't have access to this page.</p>} />
       </Routes>
     </div>
