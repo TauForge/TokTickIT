@@ -183,7 +183,8 @@ ticketsRouter.patch("/:id/resolved-indication", ...requesterGate, async (req, re
 
     const updated = await prisma.ticket.update({
       where: { id: ticket.id },
-      data: { resolvedIndicatedByRequester: true, version: { increment: 1 } },
+      // BR-16: the advisory flag is not a staff-visible workflow change, so it does not bump `version`.
+      data: { resolvedIndicatedByRequester: true },
       include: { category: true, relatedSystem: true },
     });
     res.status(200).json({ ...toTicketDto(updated), resolvedIndicatedByRequester: updated.resolvedIndicatedByRequester });
