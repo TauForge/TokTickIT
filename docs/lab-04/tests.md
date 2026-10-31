@@ -44,14 +44,16 @@ Final column starts as "Planned" and changes only after the suite has actually r
 | API-27 | API | FR-14, BR-22a | Requester list status filter, unknown status, activeOnly equals myOpen (PR #51 review) | 200 per status, 422 for unknown, counts equal | server/tests/lab-04/requester-dashboard.api.test.ts | Pass |
 | AUTHZ-01 | Authorization | 5.3 matrix | every role x every Lab 4 endpoint | codes exactly as matrix | server/tests/lab-04/authorization.api.test.ts | Pass (actions, ticket write and dashboard endpoints, 2026-10-31) |
 | PERF-01 | Performance smoke | BR-22 | dashboards on seeded plus 2,000 Tickets | each responds under 2 s locally (smoke bound, widened after PR #51 review) | server/tests/lab-04/performance.smoke.test.ts | Pass (2026-10-31) |
-| REG-01 | Regression | AC-30, FR-25 | Lab 1, 2, 3 server suites | all pass (documented BR-17 updates only) | server/tests/lab-01..03/ | Planned |
+| REG-01 | Regression | AC-30, FR-25 | Lab 1, 2, 3 server suites | all pass (documented BR-17 updates only) | server/tests/lab-01..03/ | Pass (Lab 1-3 server and client suites and E2E-04 pass on main: server 406, client 94, E2E 46, 2026-10-31) |
 | UI-01 | UI | AC-25, AC-26 | Actions Taken list, create, edit, validation, data kept | per state | client/tests/lab-04/ActionsTaken.test.tsx | Pass (12 tests, 2026-10-31) |
 | UI-02 | UI | AC-25, AC-15 | status control, gate callout, stale callout, summary refresh | per state | client/tests/lab-04/TicketWorkflow.test.tsx | Pass (7 tests, 2026-10-31) |
 | UI-05 | UI | AC-15, AC-26 | PR #52 review: Reload resets to latest values, actionAt omitted when untouched, controls locked in flight | per behavior | client/tests/lab-04/ActionsTaken.test.tsx, TicketWorkflow.test.tsx | Pass |
 | UI-06 | UI | FR-14, FR-15 | PR #53 review: list filters follow a URL change on the same screen, focus lands on the list heading | per behavior | client/tests/lab-04/drillDown.test.tsx | Pass |
+| UI-07 | UI | AC-25 | Ticket Owner select shows the signed-in user when they own the Ticket (final polish) | selected option is the owner | client/tests/lab-04/TicketWorkflow.test.tsx | Pass (2026-10-31) |
 | UI-03 | UI | FR-15, AC-20, AC-29 | Staff dashboard cards, links, states | per state | client/tests/lab-04/StaffDashboard.test.tsx | Pass (12 tests, 2026-10-31) |
 | UI-04 | UI | FR-14, AC-02 | Requester dashboard cards, links, states | per state | client/tests/lab-04/RequesterDashboard.test.tsx | Pass (9 tests, 2026-10-31) |
 | STYLE-01 | UI style | ui-spec | Zen Green classes, badges, no ad hoc styling | present | client/tests/lab-04/zenGreenStyleLab4.test.tsx | Pass (6 tests, 2026-10-31) |
+| STYLE-02 | UI style | ui-spec | checkbox and radio keep a normal control size inside zg-card (final polish) | rule present with tokens | client/tests/lab-04/zenGreenStyleLab4.test.tsx | Pass (2026-10-31) |
 | A11Y-01 | Accessibility | AC-28 | aria-current, labels, live region, focus, text status cues | present | client/tests/lab-04/accessibility.test.tsx | Pass (10 tests; the Retry focus test documents the behaviour and also passes without the source change in jsdom, so it does not by itself prove the fix) |
 | VISUAL-01 | Responsive/visual | AC-27 | 3 viewports, no overflow, screenshots saved | saved, checklist true | e2e/lab-04/dashboards.spec.ts | Pass: 9 screenshots saved and all viewed, overflow asserted at 1280/820/390; validation placement and keyboard focus ring evidenced by two extra screenshots (section 4) |
 | E2E-01 | E2E | AC-01, AC-03, AC-25 | staff adds, edits Actions; Requester sees them | full flow | e2e/lab-04/actions-taken-flow.spec.ts | Pass (2026-10-31) |
@@ -64,7 +66,7 @@ AC-01 API-01, E2E-01 | AC-02 API-17, E2E-03 | AC-03 API-02, E2E-01 | AC-04 API-0
 AC-06 API-04, AUTHZ-01 | AC-07 API-05 | AC-08 API-05 | AC-09 API-06 | AC-10 API-07 | AC-11 API-10, E2E-02 |
 AC-12 API-11 | AC-13 UNIT-03, API-12 | AC-14 API-13, E2E-02 | AC-15 API-14, UI-02, E2E-02 | AC-16 API-15 |
 AC-17 API-09 | AC-18 API-08 | AC-19 API-19, API-20, E2E-03 | AC-20 API-18, API-22, UI-03 | AC-21 API-20, AUTHZ-01 |
-AC-22 API-21, E2E-03 | AC-23 MIG-01, MIG-02 | AC-24 SEED-01 | AC-25 UI-01, UI-02, E2E-01 | AC-26 UI-01 |
+AC-22 API-21, E2E-03 | AC-23 MIG-01, MIG-02 | AC-24 SEED-01 | AC-25 UI-01, UI-02, UI-07, E2E-01 | AC-26 UI-01 |
 AC-27 VISUAL-01 | AC-28 A11Y-01 | AC-29 UI-03, UI-04 | AC-30 REG-01. Every AC has at least one test.
 
 ## 4. Responsive and Visual Checklist
@@ -122,3 +124,9 @@ in specification.md section 11).
 The Lab 3 first-login E2E spec changes the password of `onboarding@toktickit.local`; `npx prisma db seed` restores it
 and was re-run after the final E2E run. One early run of the Lab 4 resolution spec failed once and passed on every
 later run (about eight); the cause was not isolated.
+
+Final polish (branch `lab4-final-polish`, 2026-10-31):
+- Ticket Owner select showed the first listed person when the signed-in user owned the Ticket. The user was filtered out of the options and the Claim option was hidden for the owner, so no option matched the stored owner. The user is now always listed once (own name when owner, Claim for myself otherwise). Test UI-07.
+- The Follow-up required checkbox rendered as a wide bar because the `.zg-card input` rule (width 100%, height 44px) applied to checkboxes. A targeted `.zg-card input[type="checkbox"], [type="radio"]` rule restores a 1.25rem box with native rendering. Test STYLE-02, checked visually at desktop, tablet and mobile.
+- Screenshots recaptured: actions-taken (desktop, tablet, mobile, create-form-filled, validation-errors, list-multiple-actions, edit-form-performer, edit-disabled-non-performer, stale-conflict) and ticket-workflow 01 to 05.
+- Final counts after these fixes: server 42 files, 406 tests; client 18 files, 96 tests (94 plus UI-07 and STYLE-02); `npx tsc -b` clean; E2E 46 passed. The lab-03 staff ticket detail tablet overflow assertion failed once in one run and passed on three reruns and the full rerun (it measures width before the screen finishes loading; not isolated).
