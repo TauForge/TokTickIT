@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { apiGet } from "../api/apiClient";
-import { PriorityBadge, StatusBadge } from "../components/badges";
+import { formatBangkok } from "../utils/bangkokTime";
+import { PriorityBadge, STATUS_LABEL, StatusBadge } from "../components/badges";
 
 interface TicketRow {
   id: string;
@@ -29,19 +30,39 @@ interface Category {
 }
 
 const PRIORITIES = ["LOW", "MEDIUM", "HIGH"];
+const STATUSES = Object.keys(STATUS_LABEL);
 
 export function MyTickets() {
+  const [searchParams] = useSearchParams();
+  const initial = searchParams;
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const [data, setData] = useState<TicketListResponse | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [requestedPriority, setRequestedPriority] = useState("");
   const [itPriority, setItPriority] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState(() => (STATUSES.includes(initial.get("status") ?? "") ? initial.get("status")! : ""));
+  // "My Open" drill-down: the server applies the same open set the dashboard card counted.
+  const [activeOnly, setActiveOnly] = useState(() => initial.get("activeOnly") === "true");
   const [sort, setSort] = useState<"createdAt" | "updatedAt">("createdAt");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
+
+  // Clicking another dashboard card while already on this list changes the URL, so the filters follow it.
+  useEffect(() => {
+    const next = searchParams.get("status") ?? "";
+    setStatus(STATUSES.includes(next) ? next : "");
+    setActiveOnly(searchParams.get("activeOnly") === "true");
+    setPage(1);
+  }, [searchParams]);
+
+  // Arriving from a dashboard card: move focus to the list heading so keyboard and screen-reader users land on it.
+  const loaded = Boolean(data);
+  useEffect(() => {
+    if (loaded) headingRef.current?.focus();
+  }, [loaded]);
 
   useEffect(() => {
     apiGet<Category[]>("/api/categories")
@@ -56,6 +77,7 @@ export function MyTickets() {
     if (requestedPriority) params.set("requestedPriority", requestedPriority);
     if (itPriority) params.set("itPriority", itPriority);
     if (status) params.set("status", status);
+    else if (activeOnly) params.set("activeOnly", "true");
 
     apiGet<TicketListResponse>(`/api/v1/tickets?${params.toString()}`)
       .then((response) => {
@@ -63,7 +85,7 @@ export function MyTickets() {
         setError(null);
       })
       .catch(() => setError("Unable to load your tickets right now. Please try again."));
-  }, [search, categoryId, requestedPriority, itPriority, status, sort, order, page]);
+  }, [search, categoryId, requestedPriority, itPriority, status, activeOnly, sort, order, page]);
 
   function clearFilters() {
     setSearch("");
@@ -96,7 +118,9 @@ export function MyTickets() {
 
   return (
     <main className="container py-5">
-      <h1 className="h4 mb-3">My Tickets</h1>
+      <h1 ref={headingRef} tabIndex={-1} className="h4 mb-3">
+        My Tickets
+      </h1>
 
       <div className="row g-2 align-items-end mb-3">
         <div className="col-auto">
@@ -194,7 +218,11 @@ export function MyTickets() {
             }}
           >
             <option value="">All Statuses</option>
-            <option value="NEW">New</option>
+            {STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {STATUS_LABEL[s]}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -275,7 +303,7 @@ export function MyTickets() {
                   <td>
                     <Link to={`/tickets/${ticket.id}`}>{ticket.ticketNumber}</Link>
                   </td>
-                  <td>{new Date(ticket.createdAt).toLocaleString()}</td>
+                  <td>{formatBangkok(ticket.createdAt)}</td>
                   <td>{ticket.summary}</td>
                   <td>{ticket.categoryName}</td>
                   <td>
@@ -287,7 +315,7 @@ export function MyTickets() {
                   <td>
                     <StatusBadge value={ticket.status} />
                   </td>
-                  <td>{new Date(ticket.updatedAt).toLocaleString()}</td>
+                  <td>{formatBangkok(ticket.updatedAt)}</td>
                 </tr>
               ))}
             </tbody>

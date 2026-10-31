@@ -25,6 +25,7 @@ const ticket = {
   resolvedIndicatedByRequester: false,
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
+  version: 0,
 };
 
 function renderDetail() {
@@ -103,7 +104,7 @@ describe("StaffTicketDetail", () => {
         if (url.endsWith("/status") && init?.method === "PATCH") {
           return Promise.resolve({ ok: false, status: 409, json: async () => ({ error: { code: "TICKET_LOCKED", message: "This ticket is locked and its status cannot change" } }) });
         }
-        if (url.endsWith("/t1")) return Promise.resolve({ ok: true, json: async () => ticket });
+        if (url.endsWith("/t1")) return Promise.resolve({ ok: true, json: async () => ({ ...ticket, status: "IN_PROGRESS" }) });
         if (url.includes("/attachments")) return Promise.resolve({ ok: true, json: async () => [] });
         if (url.includes("/comments")) return Promise.resolve({ ok: true, json: async () => [] });
         if (url.includes("/notes")) return Promise.resolve({ ok: true, json: async () => [] });
@@ -118,7 +119,7 @@ describe("StaffTicketDetail", () => {
     await user.selectOptions(screen.getByLabelText(/current status/i), "RESOLVED");
 
     expect(await screen.findByText(/locked/i)).toBeInTheDocument();
-    await waitFor(() => expect(screen.getByLabelText(/current status/i)).toHaveValue("OPEN"));
+    await waitFor(() => expect(screen.getByLabelText(/current status/i)).toHaveValue("IN_PROGRESS"));
   });
 
   it("posts an Internal Note and shows it only in the Internal Notes panel", async () => {
@@ -148,6 +149,7 @@ describe("StaffTicketDetail", () => {
 
     renderDetail();
     await screen.findByText("TKT-2026-000001");
+    await user.click(screen.getByRole("tab", { name: /internal notes/i }));
     await user.type(screen.getByLabelText(/add an internal note/i), "Vendor RMA pending.");
     await user.click(screen.getByRole("button", { name: /post note/i }));
 

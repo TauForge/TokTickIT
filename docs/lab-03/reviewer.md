@@ -18,9 +18,17 @@ automated task; each row is filled in by hand once the corresponding manual PR s
 
 ## Reviews given to peers
 
-TauForge also reviewed a classmate's Lab 3 PR on their own repo, per the course's peer-review
-requirement.
+TauForge also reviewed a classmate's (Bank848) Lab 3 pull requests on their own repo
+(Bank848/toktickit), per the course's peer-review requirement. All 8 of Bank848's Lab 3 subsystem
+PRs were reviewed and approved by TauForge, each merged only after that approval.
 
-| Repo | PR | Title | Comments Given | Response |
-|---|---|---|---|---|
-| Bank848/toktickit | #45 | Lab 3 auth foundation (session, password, mandatory-password-change gate) | Approved with comments: praised the timing-safe-comparison-adjacent design (identical 401 for unknown email vs. wrong password), session token hashing, and the global mandatory-password-change gate; flagged one MEDIUM (`verifyPassword` skipped entirely for a non-existent email, a timing side-channel that undermines the otherwise-identical 401 response) and two LOW findings (no rate limiting, no explicit CSRF token) as non-blocking follow-ups | Approved |
+| Repo | PR | Title | Comments Given | Response | Approved | Merged |
+|---|---|---|---|---|---|---|
+| Bank848/toktickit | #42 | docs(lab-03): Sprint 3 engineering contract | "The Sprint 3 engineering contract is clear and consistent across the specification, tests, UI spec, and API spec. The updates also address the issues found during review." | "Thx for review you can merge." | Yes | 2026-09-15 15:06 UTC |
+| Bank848/toktickit | #44 | feat(lab-03): data model increment, migration and seed (#35) | "LGTM. The data model, migration, and seed changes are clear, and the added tests cover migration and seed behavior well." | "Thx for review. You can merge." | Yes | 2026-09-15 15:27 UTC |
+| Bank848/toktickit | #45 | feat(lab-03): authentication foundation and session-based identity (#36) | Approved with comments: praised the httpOnly/SameSite=Lax cookie flags, 256-bit hashed session tokens, bcrypt hashing, identical 401 for unknown email vs. wrong password, and the globally-wired mandatory-password-change gate; flagged one MEDIUM (`verifyPassword` skipped entirely for a non-existent email, a timing side-channel) and two LOW findings (no rate limiting, no explicit CSRF token) as non-blocking follow-ups | "Agreed on the timing side-channel... I'll track that as a follow-up fix rather than blocking this merge on it." | Yes | 2026-09-15 16:00 UTC |
+| Bank848/toktickit | #46 | feat(lab-03): Requester session-identity regression and Public Comments (#37) | "The session-identity regression coverage and Public Comments changes are clear, and the test suite and TypeScript checks are all passing." | "thx for review you can merge." | Yes | 2026-09-15 16:11 UTC |
+| Bank848/toktickit | #47 | feat(lab-03): IT Staff Ticket Queue (#38) | "The IT Staff ticket queue, filtering, sorting, pagination, and role-based access are clearly implemented. Tests and TypeScript checks are all passing." | "Thanks for the review." | Yes | 2026-09-15 16:36 UTC |
+| Bank848/toktickit | #48 | feat(lab-03): IT Staff Ticket Detail (#39) | "The IT Staff ticket detail, ownership, priority, status transitions, comments, notes, and attachments are clearly implemented. All tests and TypeScript checks are passing." | "Thanks for the review." | Yes | 2026-09-15 16:48 UTC |
+| Bank848/toktickit | #49 | feat(lab-03): Administrator User Management (#40) | "The admin user management features are clearly implemented, including user search, role filtering, create/edit, password reset, and activation controls. The self-deactivation and last-admin safety rules are also covered." | "Thanks for the review." | Yes | 2026-09-15 17:13 UTC |
+| Bank848/toktickit | #50 | feat(lab-03): E2E suite, visual evidence, and reviewer close-out (#41) | "The E2E coverage, visual evidence, and cross-cutting fixes are thorough. Unit tests and TypeScript checks are passing, and the remaining E2E run is clearly documented for reviewer verification." | "thx for review you can merge" | Yes | 2026-09-15 17:40 UTC |

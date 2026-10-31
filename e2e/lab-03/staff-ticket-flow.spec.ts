@@ -35,7 +35,7 @@ test.describe("Staff ticket lifecycle (E2E-03)", () => {
     // Wait for the login to actually land (session cookie set) before navigating directly
     // to a protected URL — otherwise the goto below can race the async login response and
     // hit the route guard while still unauthenticated, bouncing back to Sign In.
-    await staffPage.getByRole("link", { name: /my queue/i }).waitFor();
+    await staffPage.getByRole("navigation", { name: /main/i }).getByRole("link", { name: /my queue/i }).waitFor();
     await staffPage.goto(`/staff/tickets/${ticketId}`);
 
     await staffPage.getByLabel(/ticket owner/i).selectOption({ label: "Claim for myself" });
@@ -52,6 +52,7 @@ test.describe("Staff ticket lifecycle (E2E-03)", () => {
     await staffPage.getByRole("button", { name: /post comment/i }).click();
     await expect(staffPage.getByText("We are on it.")).toBeVisible();
 
+    await staffPage.getByRole("tab", { name: /internal notes/i }).click();
     await staffPage.getByLabel(/add an internal note/i).fill("Escalating to vendor.");
     await staffPage.getByRole("button", { name: /post note/i }).click();
     await expect(staffPage.getByText("Escalating to vendor.")).toBeVisible();
@@ -66,7 +67,7 @@ test.describe("Staff ticket lifecycle (E2E-03)", () => {
     await requesterPage.getByRole("button", { name: /sign in/i }).click();
     // Same login-completion barrier as the staff context above — avoid racing the direct
     // navigation against the async session cookie being set.
-    await requesterPage.getByRole("heading", { name: /my tickets/i }).waitFor();
+    await requesterPage.getByRole("heading", { level: 1, name: /welcome/i }).waitFor();
     await requesterPage.goto(`/tickets/${ticketId}`);
 
     await expect(requesterPage.getByText("We are on it.")).toBeVisible();

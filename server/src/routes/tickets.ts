@@ -2,6 +2,7 @@ import { Router, RequestHandler } from "express";
 import { prisma } from "../prisma";
 import { requireAuth, requireRole, blockIfPasswordChangeRequired } from "../middleware/auth";
 import { validateCreateTicketRequest } from "../validators/createTicketRequest";
+import { ACTIVE_STATUSES } from "../services/dashboards";
 import { parseTicketQuery } from "../validators/ticketQuery";
 import { generateTicketNumber } from "../services/ticketNumber";
 import { HttpError } from "../middleware/errorEnvelope";
@@ -9,6 +10,14 @@ import { HttpError } from "../middleware/errorEnvelope";
 export const ticketsRouter = Router();
 
 const requesterGate: RequestHandler[] = [requireAuth, blockIfPasswordChangeRequired, requireRole("REQUESTER")];
+
+// Lab 4 decision: IT Staff and Administrators may also create tickets for themselves (the
+// handout lists Create Ticket as a staff quick action). requesterId is always the session user.
+const createGate: RequestHandler[] = [
+  requireAuth,
+  blockIfPasswordChangeRequired,
+  requireRole("REQUESTER", "IT_STAFF", "ADMINISTRATOR"),
+];
 
 function toTicketDto(ticket: {
   id: string;
@@ -23,6 +32,7 @@ function toTicketDto(ticket: {
   itPriority: string;
   status: string;
   requesterId: number;
+  version: number;
   createdAt: Date;
   updatedAt: Date;
 }) {
@@ -39,12 +49,13 @@ function toTicketDto(ticket: {
     itPriority: ticket.itPriority,
     status: ticket.status,
     requesterId: ticket.requesterId,
+    version: ticket.version,
     createdAt: ticket.createdAt,
     updatedAt: ticket.updatedAt,
   };
 }
 
-ticketsRouter.post("/", ...requesterGate, async (req, res, next) => {
+ticketsRouter.post("/", ...createGate, async (req, res, next) => {
   try {
     const validation = validateCreateTicketRequest(req.body);
     if (!validation.ok) {
@@ -106,7 +117,8 @@ ticketsRouter.get("/", ...requesterGate, async (req, res, next) => {
       ...(query.categoryId ? { categoryId: query.categoryId } : {}),
       ...(query.requestedPriority ? { requestedPriority: query.requestedPriority } : {}),
       ...(query.itPriority ? { itPriority: query.itPriority } : {}),
-      ...(query.status ? { status: query.status } : {}),
+      // `status` wins over `activeOnly` (same rule as the staff queue); "My Open" drill-down uses activeOnly.
+      ...(query.status ? { status: query.status } : query.activeOnly ? { status: { in: ACTIVE_STATUSES } } : {}),
       ...(query.search
         ? {
             OR: [
@@ -181,6 +193,7 @@ ticketsRouter.patch("/:id/resolved-indication", ...requesterGate, async (req, re
 
     const updated = await prisma.ticket.update({
       where: { id: ticket.id },
+      // BR-16: the advisory flag is not a staff-visible workflow change, so it does not bump `version`.
       data: { resolvedIndicatedByRequester: true },
       include: { category: true, relatedSystem: true },
     });

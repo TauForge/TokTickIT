@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { Role } from "@prisma/client";
 import { prisma } from "../prisma";
 import { requireAuth, requireRole, blockIfPasswordChangeRequired } from "../middleware/auth";
 import { HttpError } from "../middleware/errorEnvelope";
@@ -21,7 +22,7 @@ adminUsersRouter.get("/", ...adminGate, async (req, res, next) => {
     if (roleParam !== undefined && !ROLES.includes(roleParam)) {
       throw new HttpError(400, "INVALID_ROLE_FILTER", "role must be one of REQUESTER, IT_STAFF, ADMINISTRATOR");
     }
-    const role = roleParam;
+    const role = roleParam as Role | undefined;
 
     const users = await prisma.user.findMany({
       where: {

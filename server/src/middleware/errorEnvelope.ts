@@ -9,12 +9,20 @@ export class HttpError extends Error {
   status: number;
   code: string;
   fieldErrors: FieldError[];
+  extra: Record<string, unknown>;
 
-  constructor(status: number, code: string, message: string, fieldErrors: FieldError[] = []) {
+  constructor(
+    status: number,
+    code: string,
+    message: string,
+    fieldErrors: FieldError[] = [],
+    extra: Record<string, unknown> = {},
+  ) {
     super(message);
     this.status = status;
     this.code = code;
     this.fieldErrors = fieldErrors;
+    this.extra = extra;
   }
 }
 
@@ -27,7 +35,7 @@ export function errorEnvelope(
 ) {
   if (err instanceof HttpError) {
     res.status(err.status).json({
-      error: { code: err.code, message: err.message, fieldErrors: err.fieldErrors },
+      error: { code: err.code, message: err.message, fieldErrors: err.fieldErrors, ...err.extra },
     });
     return;
   }

@@ -1,6 +1,7 @@
 export interface StaffTicketQuery {
   search?: string;
   status?: string;
+  activeOnly: boolean;
   ownerId?: number | "unassigned";
   itPriority?: "LOW" | "MEDIUM" | "HIGH";
   sort: "createdAt" | "updatedAt";
@@ -30,6 +31,7 @@ export function parseStaffTicketQuery(raw: Record<string, unknown>): StaffTicket
   return {
     search: typeof raw.search === "string" && raw.search.trim() ? raw.search.trim() : undefined,
     status: STATUSES.includes(String(raw.status)) ? String(raw.status) : undefined,
+    activeOnly: raw.activeOnly === "true",
     ownerId,
     itPriority: PRIORITIES.includes(String(raw.itPriority)) ? (raw.itPriority as StaffTicketQuery["itPriority"]) : undefined,
     sort: SORT_FIELDS.includes(String(raw.sort)) ? (raw.sort as StaffTicketQuery["sort"]) : "createdAt",

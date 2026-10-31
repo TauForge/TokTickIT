@@ -9,17 +9,17 @@ export type TicketStatus =
   | "REOPENED"
   | "CANCELLED";
 
-// specification.md §9. NEW->OPEN and REOPENED->OPEN are automatic (triggered by ownership
+// lab-04 specification.md 5.2 (refines Lab 3 §9). NEW->OPEN and REOPENED->OPEN are automatic (triggered by ownership
 // assignment) and are deliberately NOT listed as a target here — isValidTransition() only
 // backs the client-requestable PATCH .../status transitions.
 const STATUS_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
   NEW: ["CANCELLED"],
   OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "CANCELLED"],
-  IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED"],
+  IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
   WAITING_FOR_REQUESTER: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
   RESOLVED: ["CLOSED", "REOPENED"],
   CLOSED: ["REOPENED"],
-  REOPENED: [],
+  REOPENED: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "CANCELLED"],
   CANCELLED: [],
 };
 

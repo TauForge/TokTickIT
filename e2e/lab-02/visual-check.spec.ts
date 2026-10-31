@@ -11,7 +11,7 @@ async function loginAsRequester(page: import("@playwright/test").Page): Promise<
   await page.getByLabel(/email/i).fill("jennifer.anderson@toktickit.dev");
   await page.getByLabel(/password/i).fill("DevPass123!");
   await page.getByRole("button", { name: /sign in/i }).click();
-  await page.getByRole("heading", { name: /my tickets/i }).waitFor();
+  await page.getByRole("heading", { level: 1, name: /welcome/i }).waitFor();
 }
 
 async function selectFirstRequesterAndCreateTicket(page: import("@playwright/test").Page): Promise<string> {
