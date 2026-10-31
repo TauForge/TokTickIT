@@ -93,14 +93,17 @@ panel heading on Cancel or save, Actions Taken cells carry labels in the mobile 
 - E2E: `cd e2e && npx playwright test`
 
 ## 6. Final Results
-Run on branch `lab4-10f-hardening` (stacked on 10a to 10e), 2026-10-31, dev servers and `toktickit_test`.
+Run on `lab4-staging` after PRs #49 to #54 were merged by the reviewer (the content that becomes `main`), 2026-10-31,
+dev servers and `toktickit_test`.
 
 | Suite | Command | Result |
 |---|---|---|
-| Server | `cd server && npm test` | 42 files, 401 tests passed (Lab 1: 3, Lab 2: 56, Lab 3: 117, Lab 4: 225) |
-| Client | `cd client && npm test` | 18 files, 90 tests passed |
+| Server | `cd server && npm test` | 42 files, 406 tests passed |
+| Client | `cd client && npm test` | 18 files, 94 tests passed |
 | Client type check and build | `npx tsc -b`, `npx vite build` | no errors, build succeeded |
-| E2E | `cd e2e && npx playwright test` | 45 passed (Lab 2: 11, Lab 3: 17, Lab 4: 17) |
+| E2E | `cd e2e && npx playwright test` | 46 passed (Lab 2, Lab 3 and Lab 4 specs) |
+
+The final run on `main` after the release PR merges is recorded in the submission PDF.
 
 Intentional test changes in this task:
 - `client/tests/lab-01/App.test.tsx` no longer uses `localStorage.clear()` (undefined in this jsdom) and asserts the

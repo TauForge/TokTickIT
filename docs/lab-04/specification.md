@@ -283,12 +283,12 @@ tests.md section 6 that follow BR-17.
 - [x] No required test is skipped, disabled or commented out.
 - [x] Labs 1-3 behavior still works; any intentional test change is listed in tests.md.
 - [x] Migration and its rollback are tested; seed runs twice cleanly.
-- [ ] Dashboard counts verified against database queries (evidence saved).
+- [x] Dashboard counts verified against database queries (API-19, API-20 compare every metric with an independent raw SQL query; results in tests.md section 6).
 - [ ] No console errors, broken links, placeholders or unfinished controls on any screen.
 - [ ] Accessibility and visual checklist in ui-spec.md completed from the screenshots (6 of 8 items ticked in tests.md section 4).
 - [x] README setup, seed, migration, test and demo steps are current.
 - [ ] All Lab 4 Issues merged into `lab4-staging` through peer-reviewed PRs, then into `main`; Kanban all Done.
-- [ ] These four spec documents existed before the implementation PRs merged (commit history).
+- [x] These four spec documents existed before the implementation PRs merged (contract commit 7d0fbd5 precedes every implementation commit and PR #49 to #54).
 
 ## 11. Assumptions and Decisions
 - Performed by is the authenticated user; there is no separate "assignee" on an Action (handout AC-01 "approved
