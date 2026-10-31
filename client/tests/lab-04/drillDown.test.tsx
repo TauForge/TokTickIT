@@ -47,9 +47,13 @@ describe("Dashboard drill-down filters", () => {
     expect(new URL(calls.filter((c) => c.url.includes("/staff/tickets?")).at(-1)!.url).searchParams.get("ownerId")).toBe("2");
   });
 
-  it("My Tickets filters client-side by the status in the query string", async () => {
+  it("My Tickets sends the status from the query string to the server", async () => {
+    const seen: string[] = [];
     routeFetch(jennifer, [
-      on("GET", /\/api\/v1\/tickets\?/, () => ({ body: { items: [row("1", "RESOLVED"), row("2", "OPEN"), row("3", "RESOLVED")], page: 1, pageSize: 50, totalItems: 3, totalPages: 1 } })),
+      on("GET", /\/api\/v1\/tickets\?/, (call) => {
+        seen.push(call.url);
+        return { body: { items: [row("1", "RESOLVED"), row("3", "RESOLVED")], page: 1, pageSize: 10, totalItems: 2, totalPages: 1 } };
+      }),
     ]);
     render(
       <AuthProvider>
@@ -61,7 +65,26 @@ describe("Dashboard drill-down filters", () => {
 
     expect(await screen.findByText("TKT-1")).toBeInTheDocument();
     expect(screen.getByText("TKT-3")).toBeInTheDocument();
-    expect(screen.queryByText("TKT-2")).toBeNull();
+    expect(new URL(seen[seen.length - 1], "http://x").searchParams.get("status")).toBe("RESOLVED");
     expect(screen.getByLabelText("Current Status")).toHaveValue("RESOLVED");
+  });
+
+  it("My Tickets sends activeOnly for the My Open drill-down", async () => {
+    const seen: string[] = [];
+    routeFetch(jennifer, [
+      on("GET", /\/api\/v1\/tickets\?/, (call) => {
+        seen.push(call.url);
+        return { body: { items: [row("1", "OPEN")], page: 1, pageSize: 10, totalItems: 1, totalPages: 1 } };
+      }),
+    ]);
+    render(
+      <AuthProvider>
+        <MemoryRouter initialEntries={["/tickets?activeOnly=true"]}>
+          <MyTickets />
+        </MemoryRouter>
+      </AuthProvider>,
+    );
+    expect(await screen.findByText("TKT-1")).toBeInTheDocument();
+    expect(new URL(seen[seen.length - 1], "http://x").searchParams.get("activeOnly")).toBe("true");
   });
 });

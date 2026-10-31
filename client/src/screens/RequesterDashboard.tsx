@@ -44,7 +44,7 @@ export function RequesterDashboard() {
       id={id}
       label={label}
       value={value}
-      to={filter ? `/tickets?status=${filter}` : "/tickets"}
+      to={filter ? `/tickets?status=${filter}` : "/tickets?activeOnly=true"}
       linkName={`View all ${label} tickets`}
       linkText="View all"
       note={note}

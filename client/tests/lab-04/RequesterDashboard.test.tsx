@@ -28,7 +28,7 @@ describe("Requester dashboard (UI-04)", () => {
     renderRequesterDashboard();
     await screen.findByRole("heading", { name: /welcome/i });
 
-    expect(screen.getByRole("link", { name: "View all My Open tickets" })).toHaveAttribute("href", "/tickets");
+    expect(screen.getByRole("link", { name: "View all My Open tickets" })).toHaveAttribute("href", "/tickets?activeOnly=true");
     expect(screen.getByRole("link", { name: "View all In Progress tickets" })).toHaveAttribute("href", "/tickets?status=IN_PROGRESS");
     expect(screen.getByRole("link", { name: "View all Waiting for Me tickets" })).toHaveAttribute("href", "/tickets?status=WAITING_FOR_REQUESTER");
     expect(screen.getByRole("link", { name: "View all Resolved tickets" })).toHaveAttribute("href", "/tickets?status=RESOLVED");
